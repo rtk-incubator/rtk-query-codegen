@@ -5,7 +5,8 @@ import program = require('commander')
 
 // tslint:disable-next-line
 const meta = require('../../package.json')
-import { generateApi, GenerationOptions } from '../generate'
+import { generateApi } from '../generate'
+import { GenerationOptions } from '../type'
 
 program
   .version(meta.version)
@@ -16,6 +17,7 @@ program
   .option('--argSuffix <name>', 'pass arg suffix')
   .option('--responseSuffix <name>', 'pass response suffix')
   .option('--baseUrl <url>', 'pass baseUrl')
+  .option('-h, --hooks', 'generate React Hooks')
   .parse(process.argv)
 
 if (program.args.length === 0) {
@@ -29,7 +31,8 @@ if (program.args.length === 0) {
     'baseQuery',
     'argSuffix',
     'responseSuffix',
-    'baseUrl'
+    'baseUrl',
+    'hooks',
   ] as const
 
   const generateApiOptions = options.reduce((s, key) => program[key] ? ({
