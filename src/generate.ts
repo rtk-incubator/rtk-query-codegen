@@ -18,38 +18,11 @@ import {
   keywordType,
 } from "oazapfts/lib/codegen/tscodegen";
 import { ConstructorDeclaration } from "ts-morph";
-
-type OperationDefinition = {
-  path: string;
-  verb: typeof operationKeys[number];
-  pathItem: OpenAPIV3.PathItemObject;
-  operation: OpenAPIV3.OperationObject;
-};
-
-const operationKeys = [
-  "get",
-  "put",
-  "post",
-  "delete",
-  "options",
-  "head",
-  "patch",
-  "trace",
-] as const;
-
-export type GenerationOptions = {
-  exportName?: string;
-  reducerPath?: string;
-  baseQuery?: string;
-  argSuffix?: string;
-  responseSuffix?: string;
-  baseUrl?: string
-  isDataResponse?(
-    code: string,
-    response: OpenAPIV3.ResponseObject,
-    allResponses: OpenAPIV3.ResponsesObject
-  ): boolean;
-};
+import { GenerationOptions, OperationDefinition, operationKeys } from "./type";
+import { generateReactHooks } from "./generators/react-hooks";
+import { getV3Doc } from "./utils/getV3Doc";
+import { getOperationDefinitions } from "./utils/getOperationDefinitions";
+import { isQuery } from "./utils/isQuery";
 
 function defaultIsDataResponse(
   code: string,
@@ -69,39 +42,18 @@ export async function generateApi(
     argSuffix = "ApiArg",
     responseSuffix = "ApiResponse",
     baseUrl,
+    hooks,
     isDataResponse = defaultIsDataResponse,
   }: GenerationOptions
 ) {
-  let v3Doc: OpenAPIV3.Document;
-  const doc = await SwaggerParser.bundle(spec);
-  const isOpenApiV3 = "openapi" in doc && doc.openapi.startsWith("3");
-  if (isOpenApiV3) {
-    v3Doc = doc as OpenAPIV3.Document;
-  } else {
-    const result = await converter.convertObj(doc, {});
-    v3Doc = result.openapi as OpenAPIV3.Document;
-  }
+  const v3Doc = await getV3Doc(spec);
   if (typeof baseUrl !== 'string') {
     baseUrl = v3Doc.servers?.[0].url ?? "https://example.com"
   }
 
   const apiGen = new ApiGenerator(v3Doc, {});
 
-  const operationDefinitions: OperationDefinition[] = Object.entries(
-    v3Doc.paths
-  ).flatMap(([path, pathItem]) =>
-    Object.entries(pathItem)
-      .filter((arg): arg is [
-        typeof operationKeys[number],
-        OpenAPIV3.OperationObject
-      ] => operationKeys.includes(arg[0] as any))
-      .map(([verb, operation]) => ({
-        path,
-        verb,
-        pathItem,
-        operation,
-      }))
-  );
+  const operationDefinitions = getOperationDefinitions(v3Doc);
 
   const resultFile = ts.createSourceFile(
     "someFileName.ts",
@@ -138,6 +90,7 @@ export async function generateApi(
         generateCreateApiCall(),
         ...Object.values(interfaces),
         ...apiGen["aliases"],
+        ...(hooks ? [generateReactHooks({ exportName ,operationDefinitions })] : [])
       ],
       factory.createToken(ts.SyntaxKind.EndOfFileToken),
       ts.NodeFlags.None
@@ -494,7 +447,7 @@ export async function generateApi(
               factory.createIdentifier("url"),
               generatePathExpression(path, pathParameters, rootObject)
             ),
-            verb === 'get'
+            isQuery(verb)
             ? undefined
             : factory.createPropertyAssignment(
               factory.createIdentifier("method"),
