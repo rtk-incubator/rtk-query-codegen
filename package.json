@@ -11,7 +11,8 @@
   },
   "scripts": {
     "build": "tsc",
-    "prepare": "npm run build && chmod +x ./lib/bin/cli.js"
+    "prepare": "npm run build && chmod +x ./lib/bin/cli.js",
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "devDependencies": {
     "@rtk-incubator/rtk-query": "^0.2.0",
