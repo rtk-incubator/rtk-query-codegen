@@ -1,41 +1,42 @@
-import _ from "lodash";
-import { getOperationName } from "oazapfts/lib/codegen/generate";
-import * as ts from "typescript";
-import { factory } from "typescript";
+import * as ts from 'typescript';
+import { getOperationName } from 'oazapfts/lib/codegen/generate';
+import { capitalize, isQuery } from '../utils';
+import { OperationDefinition } from '../types';
 
-import { OperationDefinition } from "../type";
-import { isQuery } from "../utils/isQuery";
+const { factory } = ts;
 
 type GetReactHookNameParams = {
   operationDefinition: OperationDefinition;
-}
+};
 
-const getReactHookName = ({ operationDefinition: { verb, path, operation } }: GetReactHookNameParams) => factory.createBindingElement(
-  undefined,
-  undefined,
-  factory.createIdentifier(
-    `use${_.upperFirst(
-      getOperationName(verb, path, operation.operationId)
-    )}${isQuery(verb) ? 'Query' : 'Mutation'}`
-  ),
-  undefined
-)
+const getReactHookName = ({ operationDefinition: { verb, path, operation } }: GetReactHookNameParams) =>
+  factory.createBindingElement(
+    undefined,
+    undefined,
+    factory.createIdentifier(
+      `use${capitalize(getOperationName(verb, path, operation.operationId))}${isQuery(verb) ? 'Query' : 'Mutation'}`
+    ),
+    undefined
+  );
 
 type GenerateReactHooksParams = {
-  exportName: string
-  operationDefinitions: OperationDefinition[]
-}
-export const generateReactHooks = ({ exportName, operationDefinitions }: GenerateReactHooksParams) => factory.createVariableStatement(
-  [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
-  factory.createVariableDeclarationList(
-    [factory.createVariableDeclaration(
-      factory.createObjectBindingPattern(
-        operationDefinitions.map(operationDefinition => getReactHookName({ operationDefinition }))
-      ),
-      undefined,
-      undefined,
-      factory.createIdentifier(exportName)
-    )],
-    ts.NodeFlags.Const
-  )
-)
+  exportName: string;
+  operationDefinitions: OperationDefinition[];
+};
+export const generateReactHooks = ({ exportName, operationDefinitions }: GenerateReactHooksParams) =>
+  factory.createVariableStatement(
+    [factory.createModifier(ts.SyntaxKind.ExportKeyword)],
+    factory.createVariableDeclarationList(
+      [
+        factory.createVariableDeclaration(
+          factory.createObjectBindingPattern(
+            operationDefinitions.map((operationDefinition) => getReactHookName({ operationDefinition }))
+          ),
+          undefined,
+          undefined,
+          factory.createIdentifier(exportName)
+        ),
+      ],
+      ts.NodeFlags.Const
+    )
+  );
