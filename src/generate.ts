@@ -133,7 +133,7 @@ export async function generateApi(
       [
         generateImportNode("@rtk-incubator/rtk-query", {
           createApi: "createApi",
-          fetchBaseQuery: "fetchBaseQuery",
+          fetchBaseQuery: baseQuery === "fetchBaseQuery" ? "fetchBaseQuery" : null,
         }),
         generateCreateApiCall(),
         ...Object.values(interfaces),
@@ -147,7 +147,7 @@ export async function generateApi(
 
   function generateImportNode(
     pkg: string,
-    namedImports: Record<string, string>,
+    namedImports: Record<string, string | null>,
     defaultImportName?: string
   ) {
     return factory.createImportDeclaration(
@@ -159,12 +159,12 @@ export async function generateApi(
           ? factory.createIdentifier(defaultImportName)
           : undefined,
         factory.createNamedImports(
-          Object.entries(namedImports).map(([propertyName, name]) =>
+          Object.entries(namedImports).filter(args => args[1]).map(([propertyName, name]) =>
             factory.createImportSpecifier(
               name === propertyName
                 ? undefined
                 : factory.createIdentifier(propertyName),
-              factory.createIdentifier(name)
+              factory.createIdentifier(name as string)
             )
           )
         )
