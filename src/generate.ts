@@ -147,7 +147,7 @@ export async function generateApi(
 
   function generateImportNode(
     pkg: string,
-    namedImports: Record<string, string | null>,
+    namedImports: Record<string, string>,
     defaultImportName?: string
   ) {
     return factory.createImportDeclaration(
