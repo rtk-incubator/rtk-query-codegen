@@ -131,7 +131,7 @@ export async function generateApi(
       [
         generateImportNode('@rtk-incubator/rtk-query', {
           createApi: 'createApi',
-          ...(baseQuery === 'fetchBaseQuery' ? { [baseQuery]: baseQuery } : {}),
+          fetchBaseQuery: 'fetchBaseQuery'
         }),
         ...(customBaseQueryNode ? [customBaseQueryNode] : []),
         generateCreateApiCall(),

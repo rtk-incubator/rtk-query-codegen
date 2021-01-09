@@ -31,6 +31,7 @@
     "@apidevtools/swagger-parser": "^10.0.2",
     "commander": "^6.2.0",
     "oazapfts": "npm:@phryneas/experimental-oazapfts@^0.1.1-0",
+    "prettier-plugin-organize-imports": "^1.1.1",
     "swagger2openapi": "^7.0.4",
     "ts-morph": "^9.1.0",
     "typescript": "^4.1.2"
