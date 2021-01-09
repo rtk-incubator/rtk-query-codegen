@@ -1,5 +1,7 @@
 import * as ts from 'typescript';
+import * as fs from 'fs';
 import { camelCase } from 'lodash';
+import chalk from 'chalk';
 import ApiGenerator, {
   getOperationName,
   supportDeepObjects,
@@ -18,6 +20,9 @@ function defaultIsDataResponse(code: string) {
   const parsedCode = Number(code);
   return !Number.isNaN(parsedCode) && parsedCode >= 200 && parsedCode < 300;
 }
+
+let customBaseQueryNode: ts.ImportDeclaration | undefined;
+let functionName: string, filePath: string;
 
 export async function generateApi(
   spec: string,
@@ -60,14 +65,75 @@ export async function generateApi(
     return declaration;
   }
 
+  /**
+   * baseQuery handling
+   * 1. if baseQuery is specified, we should confirm the path/file location
+   * 2. if there is a seperator in the path like :, we assume they're targeting a named function
+   *    --- If it's TS, we could confirm the BaseQuery signature?
+   * 3. if there is a not a seperator, we should use the default export
+   */
+
+  function fileExists(path: string) {
+    let content;
+    try {
+      content = fs.readFileSync(`${process.cwd()}/${filePath}`, { encoding: 'utf-8' });
+    } catch (err) {
+      console.log(`${chalk.red(`Unable to locate baseQuery file: ${filePath}`)}`);
+      console.log(`${chalk.green(`Defaulting to ${chalk.underline.bold('fetchBaseQuery')}`)}`);
+
+      return false;
+    }
+
+    return true;
+  }
+
+  if (baseQuery !== 'fetchBaseQuery') {
+    if (baseQuery.includes(':')) {
+      // User specified a named function
+      [filePath, functionName] = baseQuery.split(':');
+      if (fileExists(`${process.cwd()}/${filePath}`)) {
+        customBaseQueryNode = generateImportNode(
+          filePath,
+          {
+            ...(functionName
+              ? {
+                  [functionName]: functionName,
+                }
+              : {}),
+          },
+          !functionName ? 'customBaseQuery' : undefined
+        );
+      }
+    } else {
+      functionName = 'customBaseQuery';
+      filePath = baseQuery;
+
+      if (fileExists(`${process.cwd()}/${baseQuery}`)) {
+        // import { default as functionName } from filePath
+        customBaseQueryNode = generateImportNode(
+          filePath,
+          {
+            ...(functionName
+              ? {
+                  default: functionName,
+                }
+              : {}),
+          },
+          !functionName ? 'customBaseQuery' : undefined
+        );
+      }
+    }
+  }
+
   return printer.printNode(
     ts.EmitHint.Unspecified,
     factory.createSourceFile(
       [
         generateImportNode('@rtk-incubator/rtk-query', {
           createApi: 'createApi',
-          ...(baseQuery === 'fetchBaseQuery' ? { fetchBaseQuery: 'fetchBaseQuery' } : {}),
+          ...(baseQuery === 'fetchBaseQuery' ? { [baseQuery]: baseQuery } : {}),
         }),
+        ...(customBaseQueryNode ? [customBaseQueryNode] : []),
         generateCreateApiCall(),
         ...Object.values(interfaces),
         ...apiGen['aliases'],
@@ -121,17 +187,21 @@ export async function generateApi(
                       ),
                   factory.createPropertyAssignment(
                     factory.createIdentifier('baseQuery'),
-                    factory.createCallExpression(factory.createIdentifier(baseQuery), undefined, [
-                      factory.createObjectLiteralExpression(
-                        [
-                          factory.createPropertyAssignment(
-                            factory.createIdentifier('baseUrl'),
-                            factory.createStringLiteral(baseUrl as string)
-                          ),
-                        ],
-                        false
-                      ),
-                    ])
+                    factory.createCallExpression(
+                      factory.createIdentifier(functionName ? functionName : baseQuery),
+                      undefined,
+                      [
+                        factory.createObjectLiteralExpression(
+                          [
+                            factory.createPropertyAssignment(
+                              factory.createIdentifier('baseUrl'),
+                              factory.createStringLiteral(baseUrl as string)
+                            ),
+                          ],
+                          false
+                        ),
+                      ]
+                    )
                   ),
                   factory.createPropertyAssignment(
                     factory.createIdentifier('entityTypes'),
