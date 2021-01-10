@@ -1,18 +1,18 @@
-import * as ts from 'typescript';
+import chalk from 'chalk';
 import * as fs from 'fs';
 import { camelCase } from 'lodash';
-import chalk from 'chalk';
 import ApiGenerator, {
   getOperationName,
-  supportDeepObjects,
   getReferenceName,
   isReference,
+  supportDeepObjects,
 } from 'oazapfts/lib/codegen/generate';
-import { OpenAPIV3 } from 'openapi-types';
 import { createQuestionToken, keywordType } from 'oazapfts/lib/codegen/tscodegen';
+import { OpenAPIV3 } from 'openapi-types';
+import * as ts from 'typescript';
 import { generateReactHooks } from './generators/react-hooks';
-import { capitalize, getOperationDefinitions, getV3Doc, isQuery } from './utils';
 import { GenerationOptions, OperationDefinition } from './types';
+import { capitalize, getOperationDefinitions, getV3Doc, isQuery } from './utils';
 
 const { factory } = ts;
 
@@ -427,17 +427,19 @@ export async function generateApi(
     return factory.createArrowFunction(
       undefined,
       undefined,
-      [
-        factory.createParameterDeclaration(
-          undefined,
-          undefined,
-          undefined,
-          rootObject,
-          undefined,
-          undefined,
-          undefined
-        ),
-      ],
+      Object.keys(queryArg).length
+        ? [
+            factory.createParameterDeclaration(
+              undefined,
+              undefined,
+              undefined,
+              rootObject,
+              undefined,
+              undefined,
+              undefined
+            ),
+          ]
+        : [],
       undefined,
       factory.createToken(ts.SyntaxKind.EqualsGreaterThanToken),
       factory.createParenthesizedExpression(
