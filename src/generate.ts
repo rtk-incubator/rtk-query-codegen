@@ -114,11 +114,12 @@ export async function generateApi(
         );
       }
     } else {
-      functionName = 'customBaseQuery';
       filePath = baseQuery;
 
       if (fileExists(`${process.cwd()}/${baseQuery}`)) {
         // import { default as functionName } from filePath
+        functionName = 'customBaseQuery';
+
         customBaseQueryNode = generateImportNode(
           filePath,
           {
@@ -130,6 +131,8 @@ export async function generateApi(
           },
           !functionName ? 'customBaseQuery' : undefined
         );
+      } else {
+        functionName = 'fetchBaseQuery';
       }
     }
   }
@@ -140,7 +143,7 @@ export async function generateApi(
       [
         generateImportNode('@rtk-incubator/rtk-query', {
           createApi: 'createApi',
-          ...(baseQuery === 'fetchBaseQuery' ? { [baseQuery]: baseQuery } : {}),
+          ...(baseQuery === 'fetchBaseQuery' || !customBaseQueryNode ? { fetchBaseQuery: 'fetchBaseQuery' } : {}),
         }),
         ...(customBaseQueryNode ? [customBaseQueryNode] : []),
         generateCreateApiCall(),
