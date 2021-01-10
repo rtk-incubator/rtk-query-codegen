@@ -23,6 +23,7 @@ function defaultIsDataResponse(code: string) {
 
 let customBaseQueryNode: ts.ImportDeclaration | undefined;
 let functionName: string, filePath: string;
+let hadErrorsDuringGeneration = false;
 
 export async function generateApi(
   spec: string,
@@ -78,8 +79,14 @@ export async function generateApi(
     try {
       content = fs.readFileSync(`${process.cwd()}/${filePath}`, { encoding: 'utf-8' });
     } catch (err) {
-      console.log(`${chalk.red(`Unable to locate baseQuery file: ${filePath}`)}`);
-      console.log(`${chalk.green(`Defaulting to ${chalk.underline.bold('fetchBaseQuery')}`)}`);
+      console.warn(chalk`
+{red Unable to locate the specified baseQuery file at: ${filePath}}
+
+{green Defaulting to use {underline.bold fetchBaseQuery} as the {bold baseQuery}}
+      `);
+
+      // Set a flag to echo further output at the end of the CLI
+      hadErrorsDuringGeneration = true;
 
       return false;
     }
@@ -92,6 +99,8 @@ export async function generateApi(
       // User specified a named function
       [filePath, functionName] = baseQuery.split(':');
       if (fileExists(`${process.cwd()}/${filePath}`)) {
+        // We could validate the presence of the named function as well as the file?
+
         customBaseQueryNode = generateImportNode(
           filePath,
           {
@@ -125,7 +134,7 @@ export async function generateApi(
     }
   }
 
-  return printer.printNode(
+  const sourceCode = printer.printNode(
     ts.EmitHint.Unspecified,
     factory.createSourceFile(
       [
@@ -144,6 +153,8 @@ export async function generateApi(
     ),
     resultFile
   );
+
+  return { sourceCode, hadErrorsDuringGeneration };
 
   function generateImportNode(pkg: string, namedImports: Record<string, string>, defaultImportName?: string) {
     return factory.createImportDeclaration(
