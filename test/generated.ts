@@ -4,7 +4,7 @@ export const api = createApi({
   entityTypes: [],
   endpoints: (build) => ({
     getHealthcheck: build.query<GetHealthcheckApiResponse, GetHealthcheckApiArg>({
-      query: (queryArg) => ({ url: `/healthcheck` }),
+      query: () => ({ url: `/healthcheck` }),
     }),
     updatePet: build.mutation<UpdatePetApiResponse, UpdatePetApiArg>({
       query: (queryArg) => ({ url: `/pet`, method: 'PUT', body: queryArg.pet }),
@@ -40,7 +40,7 @@ export const api = createApi({
       }),
     }),
     getInventory: build.query<GetInventoryApiResponse, GetInventoryApiArg>({
-      query: (queryArg) => ({ url: `/store/inventory` }),
+      query: () => ({ url: `/store/inventory` }),
     }),
     placeOrder: build.mutation<PlaceOrderApiResponse, PlaceOrderApiArg>({
       query: (queryArg) => ({ url: `/store/order`, method: 'POST', body: queryArg.order }),
@@ -64,7 +64,7 @@ export const api = createApi({
       }),
     }),
     logoutUser: build.query<LogoutUserApiResponse, LogoutUserApiArg>({
-      query: (queryArg) => ({ url: `/user/logout` }),
+      query: () => ({ url: `/user/logout` }),
     }),
     getUserByName: build.query<GetUserByNameApiResponse, GetUserByNameApiArg>({
       query: (queryArg) => ({ url: `/user/${queryArg.username}` }),
