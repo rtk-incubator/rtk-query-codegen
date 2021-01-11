@@ -22,7 +22,7 @@ By default, running the CLI will only log the output to the terminal. You can ei
 #### Piping to a file (including react hooks generation)
 
 ```bash
-npx @rtk-incubator/rtk-query-codegen-openapi -hooks https://petstore3.swagger.io/api/v3/openapi.json > petstore-api.generated.ts
+npx @rtk-incubator/rtk-query-codegen-openapi --hooks https://petstore3.swagger.io/api/v3/openapi.json > petstore-api.generated.ts
 ```
 
 #### Specifying an output file (including react hooks generation)

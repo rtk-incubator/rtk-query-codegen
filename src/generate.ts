@@ -77,15 +77,15 @@ export async function generateApi(
   function fileExists(path: string) {
     let content;
     try {
-      content = fs.readFileSync(`${process.cwd()}/${filePath}`, { encoding: 'utf-8' });
+      content = fs.readFileSync(`${process.cwd()}/${path}`, { encoding: 'utf-8' });
     } catch (err) {
       console.warn(chalk`
-{red ${MESSAGES.FILE_NOT_FOUND} ${filePath}}
+{red ${MESSAGES.FILE_NOT_FOUND} ${path}}
 
 {green Defaulting to use {underline.bold fetchBaseQuery} as the {bold baseQuery}}
       `);
 
-      // Set a flag to echo further output at the end of the CLI
+      // Set a flag to print further output at the end of the CLI
       hadErrorsDuringGeneration = true;
 
       return false;

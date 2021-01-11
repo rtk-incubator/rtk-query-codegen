@@ -1,8 +1,6 @@
-#!/usr/bin/env node
-
-import path from 'path';
-import program from 'commander';
+import * as path from 'path';
 import * as fs from 'fs';
+import program from 'commander';
 import chalk from 'chalk';
 
 // tslint:disable-next-line

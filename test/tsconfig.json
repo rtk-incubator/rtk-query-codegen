@@ -9,6 +9,7 @@
     "target": "es2018",
     "jsx": "react",
     "baseUrl": "..",
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "types": ["node", "jest"]
   }
 }

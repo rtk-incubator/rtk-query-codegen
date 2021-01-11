@@ -1,16 +1,19 @@
 import { exec, ExecException } from 'child_process';
+import * as fs from 'fs';
 import path from 'path';
 import del from 'del';
+
 import { MESSAGES } from '../src/utils';
 
-const SANDBOX = 'test/sandbox/';
+const GENERATED_FILE_NAME = `test.generated.ts`;
+const tmpDir = 'test/tmp';
 
 function cli(
   args: string[],
   cwd: string
 ): Promise<{ code: number; error: ExecException | null; stdout: string; stderr: string }> {
   return new Promise((resolve) => {
-    exec(`ts-node ${path.resolve('./src/bin/cli.ts')} ${args.join(' ')}`, { cwd }, (error, stdout, stderr) => {
+    exec(`ts-node ${path.resolve('./lib/bin/cli.js')} ${args.join(' ')}`, { cwd }, (error, stdout, stderr) => {
       resolve({
         code: error && error.code ? error.code : 0,
         error,
@@ -85,5 +88,17 @@ describe('CLI options testing', () => {
 
     const expectedImportsStr = `import { createApi, fetchBaseQuery } from "@rtk-incubator/rtk-query"`;
     expect(result.stdout.indexOf(expectedImportsStr) > -1).toBeTruthy();
+  });
+
+  it('should create a file when --file is specified', async () => {
+    if (!fs.existsSync(tmpDir)) {
+      fs.mkdirSync(tmpDir);
+    }
+
+    await cli([`--file ${GENERATED_FILE_NAME}`, `../fixtures/petstore.json`], tmpDir);
+
+    expect(fs.readFileSync(`${tmpDir}/${GENERATED_FILE_NAME}`, { encoding: 'utf-8' })).toMatchSnapshot();
+
+    del.sync(tmpDir);
   });
 });
