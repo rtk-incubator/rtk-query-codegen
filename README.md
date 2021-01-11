@@ -39,8 +39,8 @@ npx @rtk-incubator/rtk-query-codegen-openapi --file generated.api.ts --hooks htt
 - `--argSuffix <name>` - change the suffix of the args (default: `ApiArg`)
 - `--responseSuffix <name>` - change the suffix of the args (default: `ApiResponse`)
 - `--baseUrl <url>` - set the `baseUrl`
-- `--hooks` - include React Hooks in the output (ex: `export const { getModelQuery } = api`)
-- `--file <filename>` - specify a filename to output to (ex: `generated.api.ts`)
+- `--hooks` - include React Hooks in the output (ex: `export const { useGetModelQuery, useUpdateModelMutation } = api`)
+- `--file <filename>` - specify a filename to output to (ex: `./generated.api.ts`)
 
 ### Documentation
 

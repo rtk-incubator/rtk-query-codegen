@@ -1,5 +1,6 @@
-import chalk from 'chalk';
+import * as ts from 'typescript';
 import * as fs from 'fs';
+import chalk from 'chalk';
 import { camelCase } from 'lodash';
 import ApiGenerator, {
   getOperationName,
@@ -9,7 +10,6 @@ import ApiGenerator, {
 } from 'oazapfts/lib/codegen/generate';
 import { createQuestionToken, keywordType } from 'oazapfts/lib/codegen/tscodegen';
 import { OpenAPIV3 } from 'openapi-types';
-import * as ts from 'typescript';
 import { generateReactHooks } from './generators/react-hooks';
 import { GenerationOptions, OperationDefinition } from './types';
 import { capitalize, getOperationDefinitions, getV3Doc, isQuery, MESSAGES } from './utils';
@@ -23,7 +23,6 @@ function defaultIsDataResponse(code: string) {
 
 let customBaseQueryNode: ts.ImportDeclaration | undefined;
 let baseQueryFn: string, filePath: string;
-let hadErrorsDuringGeneration = false;
 
 export async function generateApi(
   spec: string,
@@ -67,31 +66,42 @@ export async function generateApi(
   }
 
   /**
-   * baseQuery handling
-   * 1. if baseQuery is specified, we should confirm the path/file location
-   * 2. if there is a seperator in the path like :, we assume they're targeting a named function
-   *    --- If it's TS, we could confirm the BaseQuery signature?
-   * 3. if there is a not a seperator, we should use the default export
+   * --baseQuery handling
+   * 1. If baseQuery is specified, we confirm that the file exists
+   * 2. If there is a seperator in the path, file presence + named function existence is verified.
+   * 3. If there is a not a seperator, file presence + default export existence is verified.
    */
 
-  function fileExists(path: string) {
-    let content;
-    try {
-      content = fs.readFileSync(`${process.cwd()}/${path}`, { encoding: 'utf-8' });
-    } catch (err) {
-      console.warn(chalk`
-{red ${MESSAGES.FILE_NOT_FOUND} ${path}}
+  function fnExistsInFile(path: string, fnName: string) {
+    const fileName = `${process.cwd()}/${path}`;
 
-{green Defaulting to use {underline.bold fetchBaseQuery} as the {bold baseQuery}}
-      `);
+    const sourceFile = ts.createSourceFile(
+      fileName,
+      fs.readFileSync(fileName).toString(),
+      ts.ScriptTarget.ES2015,
+      /*setParentNodes */ true
+    );
 
-      // Set a flag to print further output at the end of the CLI
-      hadErrorsDuringGeneration = true;
+    let found = false;
 
-      return false;
-    }
+    ts.forEachChild(sourceFile, (node) => {
+      const text = node.getText();
+      if (ts.isExportAssignment(node)) {
+        if (text.includes(fnName)) {
+          found = true;
+        }
+      } else if (ts.isVariableStatement(node) || ts.isFunctionDeclaration(node)) {
+        if (text.includes(fnName) && text.includes('export')) {
+          found = true;
+        }
+      } else if (ts.isExportAssignment(node)) {
+        if (text.includes('export default')) {
+          found = true;
+        }
+      }
+    });
 
-    return true;
+    return found;
   }
 
   // If a baseQuery was specified as an arg, we try to parse and resolve it. If not, fallback to `fetchBaseQuery` or throw when appropriate.
@@ -100,30 +110,32 @@ export async function generateApi(
       // User specified a named function
       [filePath, baseQueryFn] = baseQuery.split(':');
 
-      if (!baseQueryFn) {
+      if (!baseQueryFn || !fnExistsInFile(filePath, baseQueryFn)) {
         throw new Error(MESSAGES.NAMED_EXPORT_MISSING);
+      } else if (!fs.existsSync(filePath)) {
+        throw new Error(MESSAGES.FILE_NOT_FOUND);
       }
 
-      if (fileExists(`${process.cwd()}/${filePath}`)) {
-        customBaseQueryNode = generateImportNode(filePath, {
-          [baseQueryFn]: baseQueryFn,
-        });
-      }
+      customBaseQueryNode = generateImportNode(filePath, {
+        [baseQueryFn]: baseQueryFn,
+      });
     } else {
       filePath = baseQuery;
       baseQueryFn = 'fetchBaseQuery';
 
-      if (fileExists(`${process.cwd()}/${filePath}`)) {
-        console.warn(chalk`
-        {yellow.bold A custom baseQuery was specified without a named function. We're going to import the default as customBaseQuery}
+      if (!fs.existsSync(filePath)) {
+        throw new Error(MESSAGES.FILE_NOT_FOUND);
+      }
+
+      console.warn(chalk`
+        {yellow.bold A custom baseQuery was specified without a named function. We're going to import the default as {underline customBaseQuery}}
         `);
 
-        baseQueryFn = 'customBaseQuery';
+      baseQueryFn = 'customBaseQuery';
 
-        customBaseQueryNode = generateImportNode(filePath, {
-          default: baseQueryFn,
-        });
-      }
+      customBaseQueryNode = generateImportNode(filePath, {
+        default: baseQueryFn,
+      });
     }
   }
 
@@ -147,7 +159,7 @@ export async function generateApi(
     resultFile
   );
 
-  return { sourceCode, hadErrorsDuringGeneration };
+  return sourceCode;
 
   function generateImportNode(pkg: string, namedImports: Record<string, string>, defaultImportName?: string) {
     return factory.createImportDeclaration(

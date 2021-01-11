@@ -8,14 +8,10 @@ import { MESSAGES } from '../src/utils';
 const GENERATED_FILE_NAME = `test.generated.ts`;
 const tmpDir = 'test/tmp';
 
-function cli(
-  args: string[],
-  cwd: string
-): Promise<{ code: number; error: ExecException | null; stdout: string; stderr: string }> {
+function cli(args: string[], cwd: string): Promise<{ error: ExecException | null; stdout: string; stderr: string }> {
   return new Promise((resolve) => {
     exec(`ts-node ${path.resolve('./lib/bin/cli.js')} ${args.join(' ')}`, { cwd }, (error, stdout, stderr) => {
       resolve({
-        code: error && error.code ? error.code : 0,
         error,
         stdout,
         stderr,
@@ -67,27 +63,40 @@ describe('CLI options testing', () => {
     expect(numberOfHooks).toEqual(expectedHooks.length);
   });
 
-  it('should log warnings to the console and default to using fetchBaseQuery when the specified baseQuery is not found', async () => {
+  it('should error out when the specified filename provided to --baseQuery is not found', async () => {
     const result = await cli(
-      ['-h', `--baseQuery ./test/fixtures/nonExistantFile.ts`, `./test/fixtures/petstore.json`],
+      ['-h', `--baseQuery test/fixtures/nonExistantFile.ts`, `./test/fixtures/petstore.json`],
       '.'
     );
 
-    expect(result.stdout).toMatchSnapshot();
+    const expectedErrors = [MESSAGES.FILE_NOT_FOUND];
 
-    const expectedWarnings = [
-      `${MESSAGES.FILE_NOT_FOUND} ./test/fixtures/nonExistantFile.ts`,
-      'Defaulting to use fetchBaseQuery as the baseQuery',
-    ];
+    const numberOfErrors = expectedErrors.filter((msg) => result.stderr.indexOf(msg) > -1).length;
+    expect(numberOfErrors).toEqual(expectedErrors.length);
+  });
 
-    const numberOfWarnings = expectedWarnings.filter((msg) => result.stderr.indexOf(msg) > -1).length;
-    expect(numberOfWarnings).toEqual(expectedWarnings.length);
+  it('should error out when the named function provided to --baseQuery is not found', async () => {
+    const result = await cli(
+      ['-h', `--baseQuery test/fixtures/customBaseQuery.ts:missingFunctionName`, `./test/fixtures/petstore.json`],
+      '.'
+    );
 
-    const expectedBaseQueryStr = `baseQuery: fetchBaseQuery({ baseUrl: "/api/v3" })`;
-    expect(result.stdout.indexOf(expectedBaseQueryStr) > -1).toBeTruthy();
+    const expectedErrors = [MESSAGES.NAMED_EXPORT_MISSING];
 
-    const expectedImportsStr = `import { createApi, fetchBaseQuery } from "@rtk-incubator/rtk-query"`;
-    expect(result.stdout.indexOf(expectedImportsStr) > -1).toBeTruthy();
+    const numberOfErrors = expectedErrors.filter((msg) => result.stderr.indexOf(msg) > -1).length;
+    expect(numberOfErrors).toEqual(expectedErrors.length);
+  });
+
+  it('should not error when a valid named export is provided to --baseQuery', async () => {
+    const result = await cli(
+      ['-h', `--baseQuery test/fixtures/customBaseQuery.ts:anotherNamedBaseQuery`, `./test/fixtures/petstore.json`],
+      '.'
+    );
+
+    const expectedErrors = [MESSAGES.NAMED_EXPORT_MISSING];
+
+    const numberOfErrors = expectedErrors.filter((msg) => result.stderr.indexOf(msg) > -1).length;
+    expect(numberOfErrors).toEqual(0);
   });
 
   it('should create a file when --file is specified', async () => {

@@ -51,18 +51,12 @@ if (program.args.length === 0) {
     {} as GenerationOptions
   );
   generateApi(schemaAbsPath, generateApiOptions)
-    .then(async ({ sourceCode, hadErrorsDuringGeneration }) => {
+    .then(async (sourceCode) => {
       const outputFile = program['file'];
       if (outputFile) {
         fs.writeFileSync(`${process.cwd()}/${outputFile}`, await prettify(outputFile, sourceCode));
       } else {
         console.log(await prettify(null, sourceCode));
-      }
-
-      if (hadErrorsDuringGeneration) {
-        console.warn(chalk`
-{redBright.bold There were errors while generating the output. Please review the output above in your terminal and make sure the generated API is correct.}
-      `);
       }
     })
     .catch((err) => console.error(err));
