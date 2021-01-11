@@ -10,13 +10,17 @@ const tmpDir = 'test/tmp';
 
 function cli(args: string[], cwd: string): Promise<{ error: ExecException | null; stdout: string; stderr: string }> {
   return new Promise((resolve) => {
-    exec(`ts-node ${path.resolve('./lib/bin/cli.js')} ${args.join(' ')}`, { cwd }, (error, stdout, stderr) => {
-      resolve({
-        error,
-        stdout,
-        stderr,
-      });
-    });
+    exec(
+      `ts-node -T -P ${path.resolve('./tsconfig.json')} ${path.resolve('./src/bin/cli.ts')} ${args.join(' ')}`,
+      { cwd },
+      (error, stdout, stderr) => {
+        resolve({
+          error,
+          stdout,
+          stderr,
+        });
+      }
+    );
   });
 }
 
