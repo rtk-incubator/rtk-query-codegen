@@ -75,6 +75,18 @@ describe('CLI options testing', () => {
     expect(numberOfErrors).toEqual(expectedErrors.length);
   });
 
+  it('should error out when the specified filename provided to --baseQuery has no default export', async () => {
+    const result = await cli(
+      ['-h', `--baseQuery test/fixtures/customBaseQueryWithoutDefault.ts`, `./test/fixtures/petstore.json`],
+      '.'
+    );
+
+    const expectedErrors = [MESSAGES.DEFAULT_EXPORT_MISSING];
+
+    const numberOfErrors = expectedErrors.filter((msg) => result.stderr.indexOf(msg) > -1).length;
+    expect(numberOfErrors).toEqual(expectedErrors.length);
+  });
+
   it('should error out when the named function provided to --baseQuery is not found', async () => {
     const result = await cli(
       ['-h', `--baseQuery test/fixtures/customBaseQuery.ts:missingFunctionName`, `./test/fixtures/petstore.json`],

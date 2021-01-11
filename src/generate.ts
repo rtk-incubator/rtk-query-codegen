@@ -72,7 +72,7 @@ export async function generateApi(
    * 3. If there is a not a seperator, file presence + default export existence is verified.
    */
 
-  function fnExistsInFile(path: string, fnName: string) {
+  function fnExportExists(path: string, fnName: string) {
     const fileName = `${process.cwd()}/${path}`;
 
     const sourceFile = ts.createSourceFile(
@@ -90,12 +90,12 @@ export async function generateApi(
         if (text.includes(fnName)) {
           found = true;
         }
-      } else if (ts.isVariableStatement(node) || ts.isFunctionDeclaration(node)) {
+      } else if (ts.isVariableStatement(node) || ts.isFunctionDeclaration(node) || ts.isExportDeclaration(node)) {
         if (text.includes(fnName) && text.includes('export')) {
           found = true;
         }
       } else if (ts.isExportAssignment(node)) {
-        if (text.includes('export default')) {
+        if (text.includes(`export ${fnName}`)) {
           found = true;
         }
       }
@@ -110,7 +110,7 @@ export async function generateApi(
       // User specified a named function
       [filePath, baseQueryFn] = baseQuery.split(':');
 
-      if (!baseQueryFn || !fnExistsInFile(filePath, baseQueryFn)) {
+      if (!baseQueryFn || !fnExportExists(filePath, baseQueryFn)) {
         throw new Error(MESSAGES.NAMED_EXPORT_MISSING);
       } else if (!fs.existsSync(filePath)) {
         throw new Error(MESSAGES.FILE_NOT_FOUND);
@@ -125,6 +125,8 @@ export async function generateApi(
 
       if (!fs.existsSync(filePath)) {
         throw new Error(MESSAGES.FILE_NOT_FOUND);
+      } else if (!fnExportExists(filePath, 'default')) {
+        throw new Error(MESSAGES.DEFAULT_EXPORT_MISSING);
       }
 
       console.warn(chalk`
