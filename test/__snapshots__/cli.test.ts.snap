@@ -1,18 +1,18 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`CLI options testing should accept a valid url as the target swagger file and generate a client 1`] = `
-"import { createApi, fetchBaseQuery } from \\"@rtk-incubator/rtk-query\\";
+import { createApi, fetchBaseQuery } from "@rtk-incubator/rtk-query";
 export const api = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: \\"/api/v3\\" }),
+  baseQuery: fetchBaseQuery({ baseUrl: "/api/v3" }),
   entityTypes: [],
   endpoints: (build) => ({
     updatePet: build.mutation<UpdatePetApiResponse, UpdatePetApiArg>({
-      query: (queryArg) => ({ url: \`/pet\`, method: \\"PUT\\", body: queryArg.pet }),
+      query: (queryArg) => ({ url: \`/pet\`, method: "PUT", body: queryArg.pet }),
     }),
     addPet: build.mutation<AddPetApiResponse, AddPetApiArg>({
       query: (queryArg) => ({
         url: \`/pet\`,
-        method: \\"POST\\",
+        method: "POST",
         body: queryArg.pet,
       }),
     }),
@@ -43,21 +43,21 @@ export const api = createApi({
     >({
       query: (queryArg) => ({
         url: \`/pet/\${queryArg.petId}\`,
-        method: \\"POST\\",
+        method: "POST",
         params: { name: queryArg.name, status: queryArg.status },
       }),
     }),
     deletePet: build.mutation<DeletePetApiResponse, DeletePetApiArg>({
       query: (queryArg) => ({
         url: \`/pet/\${queryArg.petId}\`,
-        method: \\"DELETE\\",
+        method: "DELETE",
         headers: { api_key: queryArg.apiKey },
       }),
     }),
     uploadFile: build.mutation<UploadFileApiResponse, UploadFileApiArg>({
       query: (queryArg) => ({
         url: \`/pet/\${queryArg.petId}/uploadImage\`,
-        method: \\"POST\\",
+        method: "POST",
         body: queryArg.body,
         params: { additionalMetadata: queryArg.additionalMetadata },
       }),
@@ -68,7 +68,7 @@ export const api = createApi({
     placeOrder: build.mutation<PlaceOrderApiResponse, PlaceOrderApiArg>({
       query: (queryArg) => ({
         url: \`/store/order\`,
-        method: \\"POST\\",
+        method: "POST",
         body: queryArg.order,
       }),
     }),
@@ -78,13 +78,13 @@ export const api = createApi({
     deleteOrder: build.mutation<DeleteOrderApiResponse, DeleteOrderApiArg>({
       query: (queryArg) => ({
         url: \`/store/order/\${queryArg.orderId}\`,
-        method: \\"DELETE\\",
+        method: "DELETE",
       }),
     }),
     createUser: build.mutation<CreateUserApiResponse, CreateUserApiArg>({
       query: (queryArg) => ({
         url: \`/user\`,
-        method: \\"POST\\",
+        method: "POST",
         body: queryArg.user,
       }),
     }),
@@ -94,7 +94,7 @@ export const api = createApi({
     >({
       query: (queryArg) => ({
         url: \`/user/createWithList\`,
-        method: \\"POST\\",
+        method: "POST",
         body: queryArg.body,
       }),
     }),
@@ -113,14 +113,14 @@ export const api = createApi({
     updateUser: build.mutation<UpdateUserApiResponse, UpdateUserApiArg>({
       query: (queryArg) => ({
         url: \`/user/\${queryArg.username}\`,
-        method: \\"PUT\\",
+        method: "PUT",
         body: queryArg.user,
       }),
     }),
     deleteUser: build.mutation<DeleteUserApiResponse, DeleteUserApiArg>({
       query: (queryArg) => ({
         url: \`/user/\${queryArg.username}\`,
-        method: \\"DELETE\\",
+        method: "DELETE",
       }),
     }),
   }),
@@ -138,7 +138,7 @@ export type AddPetApiArg = {
 export type FindPetsByStatusApiResponse = /** status 200 successful operation */ Pet[];
 export type FindPetsByStatusApiArg = {
   /** Status values that need to be considered for filter */
-  status?: \\"available\\" | \\"pending\\" | \\"sold\\";
+  status?: "available" | "pending" | "sold";
 };
 export type FindPetsByTagsApiResponse = /** status 200 successful operation */ Pet[];
 export type FindPetsByTagsApiArg = {
@@ -240,7 +240,7 @@ export type Pet = {
   category?: Category;
   photoUrls: string[];
   tags?: Tag[];
-  status?: \\"available\\" | \\"pending\\" | \\"sold\\";
+  status?: "available" | "pending" | "sold";
 };
 export type ApiResponse = {
   code?: number;
@@ -252,7 +252,7 @@ export type Order = {
   petId?: number;
   quantity?: number;
   shipDate?: string;
-  status?: \\"placed\\" | \\"approved\\" | \\"delivered\\";
+  status?: "placed" | "approved" | "delivered";
   complete?: boolean;
 };
 export type User = {
@@ -266,11 +266,11 @@ export type User = {
   userStatus?: number;
 };
 
-"
+
 `;
 
 exports[`CLI options testing should create a file when --file is specified 1`] = `
-"import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
+import { createApi, fetchBaseQuery } from '@rtk-incubator/rtk-query';
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/api/v3' }),
   entityTypes: [],
@@ -493,13 +493,13 @@ export type User = {
   phone?: string;
   userStatus?: number;
 };
-"
+
 `;
 
 exports[`CLI options testing should generate react hooks as a part of the output 1`] = `
-"import { createApi, fetchBaseQuery } from \\"@rtk-incubator/rtk-query\\";
+import { createApi, fetchBaseQuery } from "@rtk-incubator/rtk-query";
 export const api = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: \\"/api/v3\\" }),
+  baseQuery: fetchBaseQuery({ baseUrl: "/api/v3" }),
   entityTypes: [],
   endpoints: (build) => ({
     getHealthcheck: build.query<
@@ -509,12 +509,12 @@ export const api = createApi({
       query: () => ({ url: \`/healthcheck\` }),
     }),
     updatePet: build.mutation<UpdatePetApiResponse, UpdatePetApiArg>({
-      query: (queryArg) => ({ url: \`/pet\`, method: \\"PUT\\", body: queryArg.pet }),
+      query: (queryArg) => ({ url: \`/pet\`, method: "PUT", body: queryArg.pet }),
     }),
     addPet: build.mutation<AddPetApiResponse, AddPetApiArg>({
       query: (queryArg) => ({
         url: \`/pet\`,
-        method: \\"POST\\",
+        method: "POST",
         body: queryArg.pet,
       }),
     }),
@@ -545,21 +545,21 @@ export const api = createApi({
     >({
       query: (queryArg) => ({
         url: \`/pet/\${queryArg.petId}\`,
-        method: \\"POST\\",
+        method: "POST",
         params: { name: queryArg.name, status: queryArg.status },
       }),
     }),
     deletePet: build.mutation<DeletePetApiResponse, DeletePetApiArg>({
       query: (queryArg) => ({
         url: \`/pet/\${queryArg.petId}\`,
-        method: \\"DELETE\\",
+        method: "DELETE",
         headers: { api_key: queryArg.apiKey },
       }),
     }),
     uploadFile: build.mutation<UploadFileApiResponse, UploadFileApiArg>({
       query: (queryArg) => ({
         url: \`/pet/\${queryArg.petId}/uploadImage\`,
-        method: \\"POST\\",
+        method: "POST",
         body: queryArg.body,
         params: { additionalMetadata: queryArg.additionalMetadata },
       }),
@@ -570,7 +570,7 @@ export const api = createApi({
     placeOrder: build.mutation<PlaceOrderApiResponse, PlaceOrderApiArg>({
       query: (queryArg) => ({
         url: \`/store/order\`,
-        method: \\"POST\\",
+        method: "POST",
         body: queryArg.order,
       }),
     }),
@@ -580,13 +580,13 @@ export const api = createApi({
     deleteOrder: build.mutation<DeleteOrderApiResponse, DeleteOrderApiArg>({
       query: (queryArg) => ({
         url: \`/store/order/\${queryArg.orderId}\`,
-        method: \\"DELETE\\",
+        method: "DELETE",
       }),
     }),
     createUser: build.mutation<CreateUserApiResponse, CreateUserApiArg>({
       query: (queryArg) => ({
         url: \`/user\`,
-        method: \\"POST\\",
+        method: "POST",
         body: queryArg.user,
       }),
     }),
@@ -596,7 +596,7 @@ export const api = createApi({
     >({
       query: (queryArg) => ({
         url: \`/user/createWithList\`,
-        method: \\"POST\\",
+        method: "POST",
         body: queryArg.body,
       }),
     }),
@@ -615,14 +615,14 @@ export const api = createApi({
     updateUser: build.mutation<UpdateUserApiResponse, UpdateUserApiArg>({
       query: (queryArg) => ({
         url: \`/user/\${queryArg.username}\`,
-        method: \\"PUT\\",
+        method: "PUT",
         body: queryArg.user,
       }),
     }),
     deleteUser: build.mutation<DeleteUserApiResponse, DeleteUserApiArg>({
       query: (queryArg) => ({
         url: \`/user/\${queryArg.username}\`,
-        method: \\"DELETE\\",
+        method: "DELETE",
       }),
     }),
   }),
@@ -644,7 +644,7 @@ export type AddPetApiArg = {
 export type FindPetsByStatusApiResponse = /** status 200 successful operation */ Pet[];
 export type FindPetsByStatusApiArg = {
   /** Status values that need to be considered for filter */
-  status?: \\"available\\" | \\"pending\\" | \\"sold\\";
+  status?: "available" | "pending" | "sold";
 };
 export type FindPetsByTagsApiResponse = /** status 200 successful operation */ Pet[];
 export type FindPetsByTagsApiArg = {
@@ -746,7 +746,7 @@ export type Pet = {
   category?: Category;
   photoUrls: string[];
   tags?: Tag[];
-  status?: \\"available\\" | \\"pending\\" | \\"sold\\";
+  status?: "available" | "pending" | "sold";
 };
 export type ApiResponse = {
   code?: number;
@@ -758,7 +758,7 @@ export type Order = {
   petId?: number;
   quantity?: number;
   shipDate?: string;
-  status?: \\"placed\\" | \\"approved\\" | \\"delivered\\";
+  status?: "placed" | "approved" | "delivered";
   complete?: boolean;
 };
 export type User = {
@@ -794,13 +794,13 @@ export const {
   useDeleteUserMutation,
 } = api;
 
-"
+
 `;
 
 exports[`CLI options testing should log output to the console when a filename is not specified 1`] = `
-"import { createApi, fetchBaseQuery } from \\"@rtk-incubator/rtk-query\\";
+import { createApi, fetchBaseQuery } from "@rtk-incubator/rtk-query";
 export const api = createApi({
-  baseQuery: fetchBaseQuery({ baseUrl: \\"/api/v3\\" }),
+  baseQuery: fetchBaseQuery({ baseUrl: "/api/v3" }),
   entityTypes: [],
   endpoints: (build) => ({
     getHealthcheck: build.query<
@@ -810,12 +810,12 @@ export const api = createApi({
       query: () => ({ url: \`/healthcheck\` }),
     }),
     updatePet: build.mutation<UpdatePetApiResponse, UpdatePetApiArg>({
-      query: (queryArg) => ({ url: \`/pet\`, method: \\"PUT\\", body: queryArg.pet }),
+      query: (queryArg) => ({ url: \`/pet\`, method: "PUT", body: queryArg.pet }),
     }),
     addPet: build.mutation<AddPetApiResponse, AddPetApiArg>({
       query: (queryArg) => ({
         url: \`/pet\`,
-        method: \\"POST\\",
+        method: "POST",
         body: queryArg.pet,
       }),
     }),
@@ -846,21 +846,21 @@ export const api = createApi({
     >({
       query: (queryArg) => ({
         url: \`/pet/\${queryArg.petId}\`,
-        method: \\"POST\\",
+        method: "POST",
         params: { name: queryArg.name, status: queryArg.status },
       }),
     }),
     deletePet: build.mutation<DeletePetApiResponse, DeletePetApiArg>({
       query: (queryArg) => ({
         url: \`/pet/\${queryArg.petId}\`,
-        method: \\"DELETE\\",
+        method: "DELETE",
         headers: { api_key: queryArg.apiKey },
       }),
     }),
     uploadFile: build.mutation<UploadFileApiResponse, UploadFileApiArg>({
       query: (queryArg) => ({
         url: \`/pet/\${queryArg.petId}/uploadImage\`,
-        method: \\"POST\\",
+        method: "POST",
         body: queryArg.body,
         params: { additionalMetadata: queryArg.additionalMetadata },
       }),
@@ -871,7 +871,7 @@ export const api = createApi({
     placeOrder: build.mutation<PlaceOrderApiResponse, PlaceOrderApiArg>({
       query: (queryArg) => ({
         url: \`/store/order\`,
-        method: \\"POST\\",
+        method: "POST",
         body: queryArg.order,
       }),
     }),
@@ -881,13 +881,13 @@ export const api = createApi({
     deleteOrder: build.mutation<DeleteOrderApiResponse, DeleteOrderApiArg>({
       query: (queryArg) => ({
         url: \`/store/order/\${queryArg.orderId}\`,
-        method: \\"DELETE\\",
+        method: "DELETE",
       }),
     }),
     createUser: build.mutation<CreateUserApiResponse, CreateUserApiArg>({
       query: (queryArg) => ({
         url: \`/user\`,
-        method: \\"POST\\",
+        method: "POST",
         body: queryArg.user,
       }),
     }),
@@ -897,7 +897,7 @@ export const api = createApi({
     >({
       query: (queryArg) => ({
         url: \`/user/createWithList\`,
-        method: \\"POST\\",
+        method: "POST",
         body: queryArg.body,
       }),
     }),
@@ -916,14 +916,14 @@ export const api = createApi({
     updateUser: build.mutation<UpdateUserApiResponse, UpdateUserApiArg>({
       query: (queryArg) => ({
         url: \`/user/\${queryArg.username}\`,
-        method: \\"PUT\\",
+        method: "PUT",
         body: queryArg.user,
       }),
     }),
     deleteUser: build.mutation<DeleteUserApiResponse, DeleteUserApiArg>({
       query: (queryArg) => ({
         url: \`/user/\${queryArg.username}\`,
-        method: \\"DELETE\\",
+        method: "DELETE",
       }),
     }),
   }),
@@ -945,7 +945,7 @@ export type AddPetApiArg = {
 export type FindPetsByStatusApiResponse = /** status 200 successful operation */ Pet[];
 export type FindPetsByStatusApiArg = {
   /** Status values that need to be considered for filter */
-  status?: \\"available\\" | \\"pending\\" | \\"sold\\";
+  status?: "available" | "pending" | "sold";
 };
 export type FindPetsByTagsApiResponse = /** status 200 successful operation */ Pet[];
 export type FindPetsByTagsApiArg = {
@@ -1047,7 +1047,7 @@ export type Pet = {
   category?: Category;
   photoUrls: string[];
   tags?: Tag[];
-  status?: \\"available\\" | \\"pending\\" | \\"sold\\";
+  status?: "available" | "pending" | "sold";
 };
 export type ApiResponse = {
   code?: number;
@@ -1059,7 +1059,7 @@ export type Order = {
   petId?: number;
   quantity?: number;
   shipDate?: string;
-  status?: \\"placed\\" | \\"approved\\" | \\"delivered\\";
+  status?: "placed" | "approved" | "delivered";
   complete?: boolean;
 };
 export type User = {
@@ -1073,5 +1073,5 @@ export type User = {
   userStatus?: number;
 };
 
-"
+
 `;
