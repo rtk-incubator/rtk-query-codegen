@@ -109,6 +109,24 @@ describe('CLI options testing', () => {
       '.'
     );
 
+    expect(result.stdout).not.toContain('fetchBaseQuery');
+    expect(result.stdout).toContain(`import { anotherNamedBaseQuery } from \"test/fixtures/customBaseQuery.ts\"`);
+
+    const expectedErrors = [MESSAGES.NAMED_EXPORT_MISSING];
+
+    const numberOfErrors = expectedErrors.filter((msg) => result.stderr.indexOf(msg) > -1).length;
+    expect(numberOfErrors).toEqual(0);
+  });
+
+  it('should import { default as customBaseQuery } when a file with a default export is provided to --baseQuery', async () => {
+    const result = await cli(
+      ['-h', `--baseQuery test/fixtures/customBaseQuery.ts`, `./test/fixtures/petstore.json`],
+      '.'
+    );
+
+    expect(result.stdout).not.toContain('fetchBaseQuery');
+    expect(result.stdout).toContain(`import { default as customBaseQuery } from \"test/fixtures/customBaseQuery.ts\"`);
+
     const expectedErrors = [MESSAGES.NAMED_EXPORT_MISSING];
 
     const numberOfErrors = expectedErrors.filter((msg) => result.stderr.indexOf(msg) > -1).length;

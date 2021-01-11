@@ -147,7 +147,7 @@ export async function generateApi(
       [
         generateImportNode('@rtk-incubator/rtk-query', {
           createApi: 'createApi',
-          ...(baseQuery === 'fetchBaseQuery' || !customBaseQueryNode ? { fetchBaseQuery: 'fetchBaseQuery' } : {}), // If it's the default or if we failed to generate a customBaseQueryNode, set it to fetchBaseQuery to have a functioning file
+          ...(baseQuery === 'fetchBaseQuery' ? { fetchBaseQuery: 'fetchBaseQuery' } : {}),
         }),
         ...(customBaseQueryNode ? [customBaseQueryNode] : []),
         generateCreateApiCall(),
