@@ -12,7 +12,7 @@ import { OpenAPIV3 } from 'openapi-types';
 import * as ts from 'typescript';
 import { generateReactHooks } from './generators/react-hooks';
 import { GenerationOptions, OperationDefinition } from './types';
-import { capitalize, getOperationDefinitions, getV3Doc, isQuery } from './utils';
+import { capitalize, getOperationDefinitions, getV3Doc, isQuery, MESSAGES } from './utils';
 
 const { factory } = ts;
 
@@ -22,7 +22,7 @@ function defaultIsDataResponse(code: string) {
 }
 
 let customBaseQueryNode: ts.ImportDeclaration | undefined;
-let functionName: string, filePath: string;
+let baseQueryFn: string, filePath: string;
 let hadErrorsDuringGeneration = false;
 
 export async function generateApi(
@@ -80,7 +80,7 @@ export async function generateApi(
       content = fs.readFileSync(`${process.cwd()}/${filePath}`, { encoding: 'utf-8' });
     } catch (err) {
       console.warn(chalk`
-{red Unable to locate the specified baseQuery file at: ${filePath}}
+{red ${MESSAGES.FILE_NOT_FOUND} ${filePath}}
 
 {green Defaulting to use {underline.bold fetchBaseQuery} as the {bold baseQuery}}
       `);
@@ -94,45 +94,35 @@ export async function generateApi(
     return true;
   }
 
+  // If a baseQuery was specified as an arg, we try to parse and resolve it. If not, fallback to `fetchBaseQuery` or throw when appropriate.
   if (baseQuery !== 'fetchBaseQuery') {
     if (baseQuery.includes(':')) {
       // User specified a named function
-      [filePath, functionName] = baseQuery.split(':');
-      if (fileExists(`${process.cwd()}/${filePath}`)) {
-        // We could validate the presence of the named function as well as the file?
+      [filePath, baseQueryFn] = baseQuery.split(':');
 
-        customBaseQueryNode = generateImportNode(
-          filePath,
-          {
-            ...(functionName
-              ? {
-                  [functionName]: functionName,
-                }
-              : {}),
-          },
-          !functionName ? 'customBaseQuery' : undefined
-        );
+      if (!baseQueryFn) {
+        throw new Error(MESSAGES.NAMED_EXPORT_MISSING);
+      }
+
+      if (fileExists(`${process.cwd()}/${filePath}`)) {
+        customBaseQueryNode = generateImportNode(filePath, {
+          [baseQueryFn]: baseQueryFn,
+        });
       }
     } else {
       filePath = baseQuery;
+      baseQueryFn = 'fetchBaseQuery';
 
-      if (fileExists(`${process.cwd()}/${baseQuery}`)) {
-        // import { default as functionName } from filePath
-        functionName = 'customBaseQuery';
+      if (fileExists(`${process.cwd()}/${filePath}`)) {
+        console.warn(chalk`
+        {yellow.bold A custom baseQuery was specified without a named function. We're going to import the default as customBaseQuery}
+        `);
 
-        customBaseQueryNode = generateImportNode(
-          filePath,
-          {
-            ...(functionName
-              ? {
-                  default: functionName,
-                }
-              : {}),
-          },
-          !functionName ? 'customBaseQuery' : undefined
-        );
-      } else {
-        functionName = 'fetchBaseQuery';
+        baseQueryFn = 'customBaseQuery';
+
+        customBaseQueryNode = generateImportNode(filePath, {
+          default: baseQueryFn,
+        });
       }
     }
   }
@@ -143,7 +133,7 @@ export async function generateApi(
       [
         generateImportNode('@rtk-incubator/rtk-query', {
           createApi: 'createApi',
-          ...(baseQuery === 'fetchBaseQuery' || !customBaseQueryNode ? { fetchBaseQuery: 'fetchBaseQuery' } : {}),
+          ...(baseQuery === 'fetchBaseQuery' || !customBaseQueryNode ? { fetchBaseQuery: 'fetchBaseQuery' } : {}), // If it's the default or if we failed to generate a customBaseQueryNode, set it to fetchBaseQuery to have a functioning file
         }),
         ...(customBaseQueryNode ? [customBaseQueryNode] : []),
         generateCreateApiCall(),
@@ -201,21 +191,17 @@ export async function generateApi(
                       ),
                   factory.createPropertyAssignment(
                     factory.createIdentifier('baseQuery'),
-                    factory.createCallExpression(
-                      factory.createIdentifier(functionName ? functionName : baseQuery),
-                      undefined,
-                      [
-                        factory.createObjectLiteralExpression(
-                          [
-                            factory.createPropertyAssignment(
-                              factory.createIdentifier('baseUrl'),
-                              factory.createStringLiteral(baseUrl as string)
-                            ),
-                          ],
-                          false
-                        ),
-                      ]
-                    )
+                    factory.createCallExpression(factory.createIdentifier(baseQueryFn || baseQuery), undefined, [
+                      factory.createObjectLiteralExpression(
+                        [
+                          factory.createPropertyAssignment(
+                            factory.createIdentifier('baseUrl'),
+                            factory.createStringLiteral(baseUrl as string)
+                          ),
+                        ],
+                        false
+                      ),
+                    ])
                   ),
                   factory.createPropertyAssignment(
                     factory.createIdentifier('entityTypes'),

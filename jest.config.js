@@ -6,6 +6,7 @@ const tsConfigPath = resolve('./test/tsconfig');
 /** @type {import('@jest/types').Config.InitialOptions} */
 const config = {
   rootDir: './test',
+  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   globals: {
     'ts-jest': {
       tsconfig: tsConfigPath,

@@ -1,18 +1,7 @@
 import { exec, ExecException } from 'child_process';
 import path from 'path';
 import del from 'del';
-
-// cases to test
-
-// Error due to file not existing, defaults to fetchBaseQuery:
-
-// node ../lib/bin/cli.js -h --baseQuery ./customBaseQuery23.ts  petstore.json
-// Named import/export from a file:
-
-// node ../lib/bin/cli.js -h --baseQuery ./customBaseQuery.ts:namedBaseQuery  petstore.json
-// Default export from a file:
-
-// node ../lib/bin/cli.js -h --baseQuery ./customBaseQuery.ts petstore.json
+import { MESSAGES } from '../src/utils';
 
 const SANDBOX = 'test/sandbox/';
 
@@ -35,6 +24,11 @@ function cli(
 describe('CLI options testing', () => {
   it('should log output to the console when a filename is not specified', async () => {
     const result = await cli([`./test/fixtures/petstore.json`], '.');
+    expect(result.stdout).toMatchSnapshot();
+  });
+
+  it('should accept a valid url as the target swagger file and generate a client', async () => {
+    const result = await cli([`https://petstore3.swagger.io/api/v3/openapi.json`], '.');
     expect(result.stdout).toMatchSnapshot();
   });
 
@@ -79,7 +73,7 @@ describe('CLI options testing', () => {
     expect(result.stdout).toMatchSnapshot();
 
     const expectedWarnings = [
-      'Unable to locate the specified baseQuery file at: ./test/fixtures/nonExistantFile.ts',
+      `${MESSAGES.FILE_NOT_FOUND} ./test/fixtures/nonExistantFile.ts`,
       'Defaulting to use fetchBaseQuery as the baseQuery',
     ];
 
@@ -87,7 +81,9 @@ describe('CLI options testing', () => {
     expect(numberOfWarnings).toEqual(expectedWarnings.length);
 
     const expectedBaseQueryStr = `baseQuery: fetchBaseQuery({ baseUrl: "/api/v3" })`;
-
     expect(result.stdout.indexOf(expectedBaseQueryStr) > -1).toBeTruthy();
+
+    const expectedImportsStr = `import { createApi, fetchBaseQuery } from "@rtk-incubator/rtk-query"`;
+    expect(result.stdout.indexOf(expectedImportsStr) > -1).toBeTruthy();
   });
 });

@@ -8,6 +8,7 @@
     "noEmit": true,
     "target": "es2018",
     "jsx": "react",
-    "baseUrl": ".."
+    "baseUrl": "..",
+    "resolveJsonModule": true
   }
 }
