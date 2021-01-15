@@ -5,19 +5,32 @@ import del from 'del';
 
 import { MESSAGES } from '../src/utils';
 
-const GENERATED_FILE_NAME = `test.generated.ts`;
+let id = 0;
 const tmpDir = 'test/tmp';
 
-function cli(args: string[], cwd: string): Promise<{ error: ExecException | null; stdout: string; stderr: string }> {
+function cli(
+  args: string[],
+  cwd: string
+): Promise<{ error: ExecException | null; stdout: string; stderr: string; output: string }> {
   return new Promise((resolve) => {
+    const tmpFileName = path.resolve(tmpDir, `${++id}.test.generated.ts`);
     exec(
-      `ts-node -T -P ${path.resolve('./tsconfig.json')} ${path.resolve('./src/bin/cli.ts')} ${args.join(' ')}`,
+      `ts-node -T -P ${path.resolve('./tsconfig.json')} ${path.resolve('./src/bin/cli.ts')} ${[
+        `-f ${tmpFileName}`,
+        ...args,
+      ].join(' ')}`,
       { cwd },
       (error, stdout, stderr) => {
+        let output = '';
+        if (fs.existsSync(tmpFileName)) {
+          output = fs.readFileSync(tmpFileName, { encoding: 'utf-8' });
+        }
+        // del.sync(tmpFileName)
         resolve({
           error,
           stdout,
           stderr,
+          output,
         });
       }
     );
@@ -37,17 +50,17 @@ afterAll(() => {
 describe('CLI options testing', () => {
   it('should log output to the console when a filename is not specified', async () => {
     const result = await cli([`./test/fixtures/petstore.json`], '.');
-    expect(result.stdout).toMatchSnapshot();
+    expect(result.output).toMatchSnapshot();
   });
 
   it('should accept a valid url as the target swagger file and generate a client', async () => {
     const result = await cli([`https://petstore3.swagger.io/api/v3/openapi.json`], '.');
-    expect(result.stdout).toMatchSnapshot();
+    expect(result.output).toMatchSnapshot();
   });
 
   it('should generate react hooks as a part of the output', async () => {
     const result = await cli(['-h', `./test/fixtures/petstore.json`], '.');
-    expect(result.stdout).toMatchSnapshot();
+    expect(result.output).toMatchSnapshot();
 
     // These are all of the hooks that we expect the petstore schema to output
     const expectedHooks = [
@@ -73,7 +86,7 @@ describe('CLI options testing', () => {
       'useDeleteUserMutation',
     ];
 
-    const numberOfHooks = expectedHooks.filter((name) => result.stdout.indexOf(name) > -1).length;
+    const numberOfHooks = expectedHooks.filter((name) => result.output.indexOf(name) > -1).length;
     expect(numberOfHooks).toEqual(expectedHooks.length);
   });
 
@@ -82,7 +95,6 @@ describe('CLI options testing', () => {
       ['-h', `--baseQuery test/fixtures/nonExistantFile.ts`, `./test/fixtures/petstore.json`],
       '.'
     );
-
     const expectedErrors = [MESSAGES.FILE_NOT_FOUND];
 
     const numberOfErrors = expectedErrors.filter((msg) => result.stderr.indexOf(msg) > -1).length;
@@ -119,8 +131,8 @@ describe('CLI options testing', () => {
       '.'
     );
 
-    expect(result.stdout).not.toContain('fetchBaseQuery');
-    expect(result.stdout).toContain(`import { anotherNamedBaseQuery } from \"test/fixtures/customBaseQuery\"`);
+    expect(result.output).not.toContain('fetchBaseQuery');
+    expect(result.output).toContain(`import { anotherNamedBaseQuery } from '../fixtures/customBaseQuery'`);
 
     const expectedErrors = [MESSAGES.NAMED_EXPORT_MISSING];
 
@@ -134,8 +146,8 @@ describe('CLI options testing', () => {
       '.'
     );
 
-    expect(result.stdout).not.toContain('fetchBaseQuery');
-    expect(result.stdout).toContain(`import { default as customBaseQuery } from \"test/fixtures/customBaseQuery\"`);
+    expect(result.output).not.toContain('fetchBaseQuery');
+    expect(result.output).toContain(`import { default as customBaseQuery } from '../fixtures/customBaseQuery'`);
 
     const expectedErrors = [MESSAGES.NAMED_EXPORT_MISSING];
 
@@ -143,22 +155,60 @@ describe('CLI options testing', () => {
     expect(numberOfErrors).toEqual(0);
   });
 
-  it('should create a file when --file is specified', async () => {
-    await cli([`--file ${GENERATED_FILE_NAME}`, `../fixtures/petstore.json`], tmpDir);
+  it('should error out when the specified with path alias is not found', async () => {
+    const result = await cli(['-h', `--baseQuery @/hoge/fuga/nonExistantFile`, `./test/fixtures/petstore.json`], '.');
+    const expectedErrors = [MESSAGES.FILE_NOT_FOUND];
 
-    expect(fs.readFileSync(`${tmpDir}/${GENERATED_FILE_NAME}`, { encoding: 'utf-8' })).toMatchSnapshot();
+    const numberOfErrors = expectedErrors.filter((msg) => result.stderr.indexOf(msg) > -1).length;
+    expect(numberOfErrors).toEqual(expectedErrors.length);
+  });
+
+  it('should work with path alias', async () => {
+    const pathAlias = '@/customBaseQuery';
+    const result = await cli(
+      ['-h', `--baseQuery ${pathAlias}:anotherNamedBaseQuery -c test/tsconfig.json `, `./test/fixtures/petstore.json`],
+      '.'
+    );
+
+    expect(result.output).not.toContain('fetchBaseQuery');
+    expect(result.output).toContain(`import { anotherNamedBaseQuery } from '${pathAlias}'`);
+
+    const expectedErrors = [MESSAGES.NAMED_EXPORT_MISSING];
+
+    const numberOfErrors = expectedErrors.filter((msg) => result.stderr.indexOf(msg) > -1).length;
+    expect(numberOfErrors).toEqual(0);
+  });
+
+  it('should work with path alias with file extension', async () => {
+    const pathAlias = '@/customBaseQuery';
+    const result = await cli(
+      [
+        '-h',
+        `--baseQuery ${pathAlias}.ts:anotherNamedBaseQuery -c test/tsconfig.json `,
+        `./test/fixtures/petstore.json`,
+      ],
+      '.'
+    );
+
+    expect(result.output).not.toContain('fetchBaseQuery');
+    expect(result.output).toContain(`import { anotherNamedBaseQuery } from '${pathAlias}'`);
+
+    const expectedErrors = [MESSAGES.NAMED_EXPORT_MISSING];
+
+    const numberOfErrors = expectedErrors.filter((msg) => result.stderr.indexOf(msg) > -1).length;
+    expect(numberOfErrors).toEqual(0);
   });
 });
 
 describe('yaml parsing', () => {
   it('should parse a yaml schema from a URL', async () => {
     const result = await cli([`https://petstore3.swagger.io/api/v3/openapi.yaml`], '.');
-    expect(result.stdout).toMatchSnapshot();
+    expect(result.output).toMatchSnapshot();
   });
 
   it('should be able to use read a yaml file and create a file with the output when --file is specified', async () => {
-    await cli([`--file ${GENERATED_FILE_NAME}`, `../fixtures/petstore.yaml`], tmpDir);
+    const result = await cli([`../fixtures/petstore.yaml`], tmpDir);
 
-    expect(fs.readFileSync(`${tmpDir}/${GENERATED_FILE_NAME}`, { encoding: 'utf-8' })).toMatchSnapshot();
+    expect(result.output).toMatchSnapshot();
   });
 });
