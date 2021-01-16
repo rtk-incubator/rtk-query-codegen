@@ -22,7 +22,7 @@ program
   .option('--baseUrl <url>', 'pass baseUrl')
   .option('-h, --hooks', 'generate React Hooks')
   .option('-c, --config <path>', 'pass tsconfig path for resolve path alias')
-  .requiredOption('-f, --file <filename>', 'output file name (ex: generated.api.ts)')
+  .option('-f, --file <filename>', 'output file name (ex: generated.api.ts)')
   .parse(process.argv);
 
 if (program.args.length === 0) {
@@ -72,7 +72,12 @@ if (program.args.length === 0) {
   };
   generateApi(schemaAbsPath, generateApiOptions)
     .then(async (sourceCode) => {
-      fs.writeFileSync(path.resolve(process.cwd(), outputFile), await prettify(outputFile, sourceCode));
+      const outputFile = program['file'];
+      if (outputFile) {
+        fs.writeFileSync(path.resolve(process.cwd(), outputFile), await prettify(outputFile, sourceCode));
+      } else {
+        console.log(await prettify(null, sourceCode));
+      }
     })
     .catch((err) => {
       console.error(err);

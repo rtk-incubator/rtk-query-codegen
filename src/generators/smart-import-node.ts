@@ -9,7 +9,7 @@ import { resolveImportPath } from '../utils/resolveImportPath';
 
 type SmartGenerateImportNode = {
   moduleName: string;
-  containingFile: string;
+  containingFile?: string;
   targetName: string;
   targetAlias: string;
   compilerOptions?: ts.CompilerOptions;
@@ -22,29 +22,26 @@ export const generateSmartImportNode = ({
   compilerOptions,
 }: SmartGenerateImportNode): ts.ImportDeclaration => {
   if (fs.existsSync(moduleName)) {
-    if (!fnExportExists(moduleName, targetName)) {
-      if (targetName === 'default') {
-        throw new Error(MESSAGES.DEFAULT_EXPORT_MISSING);
-      } else {
-        throw new Error(MESSAGES.NAMED_EXPORT_MISSING);
-      }
+    if (fnExportExists(moduleName, targetName)) {
+      return generateImportNode(
+        stripFileExtension(containingFile ? resolveImportPath(moduleName, containingFile) : moduleName),
+        {
+          [targetName]: targetAlias,
+        }
+      );
     }
 
-    return generateImportNode(stripFileExtension(resolveImportPath(moduleName, containingFile)), {
-      [targetName]: targetAlias,
-    });
+    if (targetName === 'default') {
+      throw new Error(MESSAGES.DEFAULT_EXPORT_MISSING);
+    }
+    throw new Error(MESSAGES.NAMED_EXPORT_MISSING);
   }
 
   if (!compilerOptions) {
     throw new Error(MESSAGES.FILE_NOT_FOUND);
   }
 
-  if (!containingFile) {
-    return generateImportNode(stripFileExtension(moduleName), {
-      [targetName]: targetAlias,
-    });
-  }
-
+  // maybe moduleName is path alias
   if (isModuleInsidePathAlias(compilerOptions, moduleName)) {
     return generateImportNode(stripFileExtension(moduleName), {
       [targetName]: targetAlias,
