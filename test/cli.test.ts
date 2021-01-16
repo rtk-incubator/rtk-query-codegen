@@ -182,6 +182,26 @@ describe('CLI options testing', () => {
     expect(numberOfErrors).toEqual(expectedErrors.length);
   });
 
+  it('should throw the correct error when a specified tsconfig is not found', async () => {
+    const pathAlias = '@/customBaseQuery';
+    const result = await cli(
+      [
+        '-h',
+        `--baseQuery`,
+        `${pathAlias}:anotherNamedBaseQuery`,
+        '-c',
+        'test/missing/tsconfig.json',
+        `./test/fixtures/petstore.json`,
+      ],
+      '.'
+    );
+
+    const expectedErrors = [MESSAGES.TSCONFIG_FILE_NOT_FOUND];
+
+    const numberOfErrors = expectedErrors.filter((msg) => result.stderr.indexOf(msg) > -1).length;
+    expect(numberOfErrors).toEqual(expectedErrors.length);
+  });
+
   it('should work with path alias', async () => {
     const pathAlias = '@/customBaseQuery';
     const result = await cli(
