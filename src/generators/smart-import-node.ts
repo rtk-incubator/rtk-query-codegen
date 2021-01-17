@@ -1,11 +1,14 @@
 import * as ts from 'typescript';
 import * as fs from 'fs';
+import fetch from 'node-fetch';
 
-import { MESSAGES, stripFileExtension } from '../utils';
+import { isValidUrl, MESSAGES, stripFileExtension } from '../utils';
 import { isModuleInsidePathAlias } from '../utils/isModuleInsidePathAlias';
 import { generateImportNode } from './import-node';
 import { fnExportExists } from '../utils/fnExportExists';
 import { resolveImportPath } from '../utils/resolveImportPath';
+import { fnExportExistsByFilePath } from '../utils/fnExportExistsByFilePath';
+import { createSourceFile } from '../utils/createSourceFile';
 
 type SmartGenerateImportNode = {
   moduleName: string;
@@ -14,15 +17,15 @@ type SmartGenerateImportNode = {
   targetAlias: string;
   compilerOptions?: ts.CompilerOptions;
 };
-export const generateSmartImportNode = ({
+export const generateSmartImportNode = async ({
   moduleName,
   containingFile,
   targetName,
   targetAlias,
   compilerOptions,
-}: SmartGenerateImportNode): ts.ImportDeclaration => {
+}: SmartGenerateImportNode): Promise<ts.ImportDeclaration> => {
   if (fs.existsSync(moduleName)) {
-    if (fnExportExists(moduleName, targetName)) {
+    if (fnExportExistsByFilePath(moduleName, targetName)) {
       return generateImportNode(
         stripFileExtension(containingFile ? resolveImportPath(moduleName, containingFile) : moduleName),
         {
@@ -42,10 +45,24 @@ export const generateSmartImportNode = ({
   }
 
   // maybe moduleName is path alias
-  if (isModuleInsidePathAlias(compilerOptions, moduleName)) {
+  const maybeFullPath = isModuleInsidePathAlias(compilerOptions, moduleName);
+  if (maybeFullPath && fnExportExistsByFilePath(maybeFullPath, targetName)) {
     return generateImportNode(stripFileExtension(moduleName), {
       [targetName]: targetAlias,
     });
+  }
+
+  // maybe moduleName is url. eg. https://deno.land/std/http/server.ts
+  if (isValidUrl(moduleName)) {
+    const response = await fetch(moduleName);
+    if (response.ok) {
+      const maybeJsOrTsFile = await response.text();
+      if (fnExportExists(createSourceFile(maybeJsOrTsFile), targetName)) {
+        return generateImportNode(moduleName, {
+          [targetName]: targetAlias,
+        });
+      }
+    }
   }
 
   throw new Error(MESSAGES.FILE_NOT_FOUND);

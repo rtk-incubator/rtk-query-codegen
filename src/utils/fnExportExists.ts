@@ -1,17 +1,6 @@
 import * as ts from 'typescript';
-import * as fs from 'fs';
-import * as path from 'path';
 
-export function fnExportExists(filePath: string, fnName: string) {
-  const fileName = path.resolve(process.cwd(), filePath);
-
-  const sourceFile = ts.createSourceFile(
-    fileName,
-    fs.readFileSync(fileName).toString(),
-    ts.ScriptTarget.ES2015,
-    /*setParentNodes */ true
-  );
-
+export function fnExportExists(sourceFile: ts.SourceFile, fnName: string) {
   let found = false;
 
   ts.forEachChild(sourceFile, (node) => {

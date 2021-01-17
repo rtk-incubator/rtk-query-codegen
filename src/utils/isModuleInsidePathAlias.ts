@@ -8,21 +8,22 @@ function isAlias(glob: string, moduleName: string): boolean {
 }
 
 const ext = ['js', 'ts'];
-function existsModule(moduleName: string) {
+function getFullPathIfExistsModule(moduleName: string): string | false {
   if (/\.(ts|js)$/.test(moduleName)) {
-    return fs.existsSync(moduleName);
+    return fs.existsSync(moduleName) ? moduleName : false;
   }
   for (let i = 0; i < ext.length; i++) {
-    if (fs.existsSync(`${moduleName}.${ext[i]}`)) {
-      return true;
+    const fullPath = `${moduleName}.${ext[i]}`;
+    if (fs.existsSync(fullPath)) {
+      return fullPath;
     }
   }
   return false;
 }
 
-export function isModuleInsidePathAlias(options: ts.CompilerOptions, moduleName: string): boolean {
+export function isModuleInsidePathAlias(options: ts.CompilerOptions, moduleName: string): string | false {
   if (!(options.paths && options.baseUrl)) {
-    return fs.existsSync(moduleName);
+    return fs.existsSync(moduleName) ? moduleName : false;
   }
 
   let baseUrl = options.baseUrl;
@@ -35,8 +36,9 @@ export function isModuleInsidePathAlias(options: ts.CompilerOptions, moduleName:
       const before = glob.replace('*', '');
       for (let i = 0; i < options.paths[glob].length; i++) {
         const after = options.paths[glob][i].replace('*', '');
-        if (existsModule(path.resolve(baseUrl, after, moduleName.replace(before, '')))) {
-          return true;
+        const maybeFullPath = getFullPathIfExistsModule(path.resolve(baseUrl, after, moduleName.replace(before, '')));
+        if (maybeFullPath) {
+          return maybeFullPath;
         }
       }
     }

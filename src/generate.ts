@@ -90,9 +90,12 @@ export async function generateApi(
 
   let targetName = 'default';
   if (baseQuery !== 'fetchBaseQuery') {
-    if (baseQuery.includes(':')) {
+    const result = /(.*):(.*)$/.exec(baseQuery);
+    if (result) {
       // User specified a named function
-      [moduleName, baseQuery] = baseQuery.split(':');
+      const [_, $1, $2] = result;
+      moduleName = $1;
+      baseQuery = $2;
 
       if (!baseQuery) {
         throw new Error(MESSAGES.NAMED_EXPORT_MISSING);
@@ -103,7 +106,7 @@ export async function generateApi(
       baseQuery = 'customBaseQuery';
     }
 
-    customBaseQueryNode = generateSmartImportNode({
+    customBaseQueryNode = await generateSmartImportNode({
       moduleName,
       containingFile: outputFile,
       targetName,
