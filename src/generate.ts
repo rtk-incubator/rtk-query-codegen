@@ -11,7 +11,7 @@ import { createQuestionToken, keywordType } from 'oazapfts/lib/codegen/tscodegen
 import { OpenAPIV3 } from 'openapi-types';
 import { generateReactHooks } from './generators/react-hooks';
 import { GenerationOptions, OperationDefinition } from './types';
-import { capitalize, getOperationDefinitions, getV3Doc, isQuery, MESSAGES } from './utils';
+import { capitalize, getOperationDefinitions, getV3Doc, isQuery, isValidUrl, MESSAGES } from './utils';
 import { removeUndefined } from './utils/removeUndefined';
 import {
   generateCreateApiCall,
@@ -29,8 +29,36 @@ function defaultIsDataResponse(code: string) {
   return !Number.isNaN(parsedCode) && parsedCode >= 200 && parsedCode < 300;
 }
 
-let customBaseQueryNode: ts.ImportDeclaration | undefined;
-let moduleName: string;
+function resolveBaseQuery(baseQuery: string): { moduleName: string; importTarget: string; importTargetAlias: string } {
+  if (isValidUrl(baseQuery) && baseQuery.split(':').length === 2) {
+    return {
+      moduleName: baseQuery,
+      importTarget: 'default',
+      importTargetAlias: 'customBaseQuery',
+    };
+  }
+
+  const result = /(.*):(.*)$/.exec(baseQuery);
+  if (result) {
+    // User specified a named function
+    const [_, $1, $2] = result;
+
+    if (!baseQuery) {
+      throw new Error(MESSAGES.NAMED_EXPORT_MISSING);
+    }
+
+    return {
+      moduleName: $1,
+      importTarget: $2,
+      importTargetAlias: $2,
+    };
+  }
+  return {
+    moduleName: baseQuery,
+    importTarget: 'default',
+    importTargetAlias: 'customBaseQuery',
+  };
+}
 
 export async function generateApi(
   spec: string,
@@ -87,32 +115,15 @@ export async function generateApi(
   }
 
   // If a baseQuery was specified as an arg, we try to parse and resolve it. If not, fallback to `fetchBaseQuery` or throw when appropriate.
-
-  let targetName = 'default';
+  let customBaseQueryNode: ts.ImportDeclaration | undefined;
   if (baseQuery !== 'fetchBaseQuery') {
-    const result = /(.*):(.*)$/.exec(baseQuery);
-    if (result) {
-      // User specified a named function
-      const [_, $1, $2] = result;
-      moduleName = $1;
-      baseQuery = $2;
-
-      if (!baseQuery) {
-        throw new Error(MESSAGES.NAMED_EXPORT_MISSING);
-      }
-      targetName = baseQuery;
-    } else {
-      moduleName = baseQuery;
-      baseQuery = 'customBaseQuery';
-    }
-
+    const resolved = resolveBaseQuery(baseQuery);
     customBaseQueryNode = await generateSmartImportNode({
-      moduleName,
+      ...resolved,
       containingFile: outputFile,
-      targetName,
-      targetAlias: baseQuery,
       compilerOptions,
     });
+    baseQuery = resolved.importTargetAlias;
   }
 
   const baseQueryCall = factory.createCallExpression(factory.createIdentifier(baseQuery), undefined, [
