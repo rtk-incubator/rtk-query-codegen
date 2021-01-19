@@ -13,28 +13,28 @@ import { createSourceFile } from '../utils/createSourceFile';
 type SmartGenerateImportNode = {
   moduleName: string;
   containingFile?: string;
-  targetName: string;
-  targetAlias: string;
+  importTarget: string;
+  importTargetAlias: string;
   compilerOptions?: ts.CompilerOptions;
 };
 export const generateSmartImportNode = async ({
   moduleName,
   containingFile,
-  targetName,
-  targetAlias,
+  importTarget,
+  importTargetAlias,
   compilerOptions,
 }: SmartGenerateImportNode): Promise<ts.ImportDeclaration> => {
   if (fs.existsSync(moduleName)) {
-    if (fnExportExistsByFilePath(moduleName, targetName)) {
+    if (fnExportExistsByFilePath(moduleName, importTarget)) {
       return generateImportNode(
         stripFileExtension(containingFile ? resolveImportPath(moduleName, containingFile) : moduleName),
         {
-          [targetName]: targetAlias,
+          [importTarget]: importTargetAlias,
         }
       );
     }
 
-    if (targetName === 'default') {
+    if (importTarget === 'default') {
       throw new Error(MESSAGES.DEFAULT_EXPORT_MISSING);
     }
     throw new Error(MESSAGES.NAMED_EXPORT_MISSING);
@@ -46,9 +46,9 @@ export const generateSmartImportNode = async ({
 
   // maybe moduleName is path alias
   const maybeFullPath = isModuleInsidePathAlias(compilerOptions, moduleName);
-  if (maybeFullPath && fnExportExistsByFilePath(maybeFullPath, targetName)) {
+  if (maybeFullPath && fnExportExistsByFilePath(maybeFullPath, importTarget)) {
     return generateImportNode(stripFileExtension(moduleName), {
-      [targetName]: targetAlias,
+      [importTarget]: importTargetAlias,
     });
   }
 
@@ -57,12 +57,19 @@ export const generateSmartImportNode = async ({
     const response = await fetch(moduleName);
     if (response.ok) {
       const maybeJsOrTsFile = await response.text();
-      if (fnExportExists(createSourceFile(maybeJsOrTsFile), targetName)) {
+      if (fnExportExists(createSourceFile(maybeJsOrTsFile), importTarget)) {
         return generateImportNode(moduleName, {
-          [targetName]: targetAlias,
+          [importTarget]: importTargetAlias,
         });
       }
+
+      if (importTarget === 'default') {
+        throw new Error(MESSAGES.DEFAULT_EXPORT_MISSING);
+      }
+      throw new Error(MESSAGES.NAMED_EXPORT_MISSING);
     }
+
+    throw new Error(MESSAGES.URL_NOT_FOUND);
   }
 
   throw new Error(MESSAGES.FILE_NOT_FOUND);
