@@ -41,6 +41,7 @@ export async function generateApi(
     argSuffix = 'ApiArg',
     responseSuffix = 'ApiResponse',
     baseUrl,
+    noBaseUrl,
     hooks,
     outputFile,
     isDataResponse = defaultIsDataResponse,
@@ -137,7 +138,7 @@ export async function generateApi(
           exportName,
           reducerPath,
           createApiFn: factory.createIdentifier('createApi'),
-          baseQuery: baseQueryCall,
+          baseQuery: noBaseUrl ? factory.createIdentifier(baseQuery) : baseQueryCall,
           entityTypes: generateEntityTypes({ v3Doc, operationDefinitions }),
           endpointDefinitions: factory.createObjectLiteralExpression(
             operationDefinitions.map((operationDefinition) =>
