@@ -112,17 +112,18 @@ export async function generateApi(
     });
   }
 
-  const baseQueryCall = factory.createCallExpression(factory.createIdentifier(baseQuery), undefined, [
-    factory.createObjectLiteralExpression(
-      [
-        factory.createPropertyAssignment(
-          factory.createIdentifier('baseUrl'),
-          factory.createStringLiteral(baseUrl as string)
-        ),
-      ],
-      false
-    ),
-  ]);
+  const generateBaseQueryCall = () =>
+    factory.createCallExpression(factory.createIdentifier(baseQuery), undefined, [
+      factory.createObjectLiteralExpression(
+        [
+          factory.createPropertyAssignment(
+            factory.createIdentifier('baseUrl'),
+            factory.createStringLiteral(baseUrl as string)
+          ),
+        ],
+        false
+      ),
+    ]);
 
   const sourceCode = printer.printNode(
     ts.EmitHint.Unspecified,
@@ -137,7 +138,7 @@ export async function generateApi(
           exportName,
           reducerPath,
           createApiFn: factory.createIdentifier('createApi'),
-          baseQuery: baseQuery === 'fetchBaseQuery' ? baseQueryCall : factory.createIdentifier(baseQuery),
+          baseQuery: baseQuery === 'fetchBaseQuery' ? generateBaseQueryCall() : factory.createIdentifier(baseQuery),
           entityTypes: generateEntityTypes({ v3Doc, operationDefinitions }),
           endpointDefinitions: factory.createObjectLiteralExpression(
             operationDefinitions.map((operationDefinition) =>
