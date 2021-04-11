@@ -50,6 +50,8 @@ export async function generateApi(
   const v3Doc = await getV3Doc(spec);
   if (typeof baseUrl !== 'string') {
     baseUrl = v3Doc.servers?.[0].url ?? 'https://example.com';
+  } else if (baseQuery !== 'fetchBaseQuery') {
+    console.warn(MESSAGES.BASE_URL_IGNORED);
   }
 
   const apiGen = new ApiGenerator(v3Doc, {});
