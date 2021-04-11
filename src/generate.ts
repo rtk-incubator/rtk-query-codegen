@@ -112,18 +112,12 @@ export async function generateApi(
     });
   }
 
-  const generateBaseQueryCall = () =>
-    factory.createCallExpression(factory.createIdentifier(baseQuery), undefined, [
-      factory.createObjectLiteralExpression(
-        [
-          factory.createPropertyAssignment(
-            factory.createIdentifier('baseUrl'),
-            factory.createStringLiteral(baseUrl as string)
-          ),
-        ],
-        false
-      ),
-    ]);
+  const fetchBaseQueryCall = factory.createCallExpression(factory.createIdentifier('fetchBaseQuery'), undefined, [
+    factory.createObjectLiteralExpression(
+      [factory.createPropertyAssignment(factory.createIdentifier('baseUrl'), factory.createStringLiteral(baseUrl))],
+      false
+    ),
+  ]);
 
   const sourceCode = printer.printNode(
     ts.EmitHint.Unspecified,
