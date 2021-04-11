@@ -132,7 +132,7 @@ export async function generateApi(
           exportName,
           reducerPath,
           createApiFn: factory.createIdentifier('createApi'),
-          baseQuery: baseQuery === 'fetchBaseQuery' ? generateBaseQueryCall() : factory.createIdentifier(baseQuery),
+          baseQuery: baseQuery === 'fetchBaseQuery' ? fetchBaseQueryCall : factory.createIdentifier(baseQuery),
           entityTypes: generateEntityTypes({ v3Doc, operationDefinitions }),
           endpointDefinitions: factory.createObjectLiteralExpression(
             operationDefinitions.map((operationDefinition) =>
