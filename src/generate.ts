@@ -138,7 +138,7 @@ export async function generateApi(
           reducerPath,
           createApiFn: factory.createIdentifier('createApi'),
           baseQuery: baseQueryCall,
-          entityTypes: generateEntityTypes({ v3Doc, operationDefinitions }),
+          tagTypes: generatetagTypes({ v3Doc, operationDefinitions }),
           endpointDefinitions: factory.createObjectLiteralExpression(
             operationDefinitions.map((operationDefinition) =>
               generateEndpoint({
@@ -160,7 +160,7 @@ export async function generateApi(
 
   return sourceCode;
 
-  function generateEntityTypes(_: { operationDefinitions: OperationDefinition[]; v3Doc: OpenAPIV3.Document }) {
+  function generatetagTypes(_: { operationDefinitions: OperationDefinition[]; v3Doc: OpenAPIV3.Document }) {
     return generateStringLiteralArray([]); // TODO
   }
 
