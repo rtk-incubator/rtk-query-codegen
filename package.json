@@ -1,6 +1,6 @@
 {
   "name": "@rtk-incubator/rtk-query-codegen-openapi",
-  "version": "0.2.3",
+  "version": "0.2.5",
   "main": "index.js",
   "author": "Lenz Weber",
   "license": "MIT",
@@ -46,7 +46,7 @@
     "@apidevtools/swagger-parser": "^10.0.2",
     "commander": "^6.2.0",
     "glob-to-regexp": "^0.4.1",
-    "oazapfts": "npm:@phryneas/experimental-oazapfts@^0.1.1-0",
+    "oazapfts": "npm:@phryneas/experimental-oazapfts@^0.1.2-1",
     "prettier": "^2.2.1",
     "swagger2openapi": "^7.0.4",
     "ts-morph": "^9.1.0",

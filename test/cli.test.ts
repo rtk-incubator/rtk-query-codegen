@@ -88,6 +88,59 @@ describe('CLI options testing', () => {
     expect(numberOfHooks).toEqual(expectedHooks.length);
   });
 
+  it('should contain the right imports when using hooks and a custom base query', async () => {
+    const result = await cli(
+      ['-h', `--baseQuery`, `test/fixtures/customBaseQuery.ts:anotherNamedBaseQuery`, `./test/fixtures/petstore.json`],
+      '.'
+    );
+
+    expect(result.stdout).toContain(`import { createApi } from \"@rtk-incubator/rtk-query/react\";`);
+    expect(result.stdout).toContain(`import { anotherNamedBaseQuery } from \"test/fixtures/customBaseQuery\";`);
+  });
+
+  it('should call fetchBaseQuery with the url provided to --baseUrl', async () => {
+    const result = await cli([`--baseUrl`, `http://swagger.io`, `./test/fixtures/petstore.json`], '.');
+
+    const output = result.stdout;
+
+    expect(output).toContain('baseQuery: fetchBaseQuery({ baseUrl: "http://swagger.io" }),');
+  });
+
+  it('should assign the specified baseQueryFn provided to --baseQuery', async () => {
+    const result = await cli(
+      [`--baseQuery`, `test/fixtures/customBaseQuery.ts:anotherNamedBaseQuery`, `./test/fixtures/petstore.json`],
+      '.'
+    );
+
+    const output = result.stdout;
+
+    expect(output).not.toContain('fetchBaseQuery');
+    expect(output).toContain('baseQuery: anotherNamedBaseQuery,');
+  });
+
+  it('should show a warning and ignore --baseUrl when specified along with --baseQuery', async () => {
+    const result = await cli(
+      [
+        `--baseQuery`,
+        `test/fixtures/customBaseQuery.ts:anotherNamedBaseQuery`,
+        `--baseUrl`,
+        `http://swagger.io`,
+        `./test/fixtures/petstore.json`,
+      ],
+      '.'
+    );
+
+    const output = result.stdout;
+
+    const expectedWarnings = [MESSAGES.BASE_URL_IGNORED];
+
+    const numberOfWarnings = expectedWarnings.filter((msg) => result.stderr.indexOf(msg) > -1).length;
+    expect(numberOfWarnings).toEqual(expectedWarnings.length);
+
+    expect(output).not.toContain('fetchBaseQuery');
+    expect(output).toContain('baseQuery: anotherNamedBaseQuery,');
+  });
+
   it('should error out when the specified filename provided to --baseQuery is not found', async () => {
     const result = await cli(
       ['-h', `--baseQuery`, `test/fixtures/nonExistantFile.ts`, `./test/fixtures/petstore.json`],
