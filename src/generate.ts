@@ -50,6 +50,8 @@ export async function generateApi(
   const v3Doc = await getV3Doc(spec);
   if (typeof baseUrl !== 'string') {
     baseUrl = v3Doc.servers?.[0].url ?? 'https://example.com';
+  } else if (baseQuery !== 'fetchBaseQuery') {
+    console.warn(MESSAGES.BASE_URL_IGNORED);
   }
 
   const apiGen = new ApiGenerator(v3Doc, {});
@@ -112,33 +114,50 @@ export async function generateApi(
     });
   }
 
-  const baseQueryCall = factory.createCallExpression(factory.createIdentifier(baseQuery), undefined, [
+  const fetchBaseQueryCall = factory.createCallExpression(factory.createIdentifier('fetchBaseQuery'), undefined, [
     factory.createObjectLiteralExpression(
-      [
-        factory.createPropertyAssignment(
-          factory.createIdentifier('baseUrl'),
-          factory.createStringLiteral(baseUrl as string)
-        ),
-      ],
+      [factory.createPropertyAssignment(factory.createIdentifier('baseUrl'), factory.createStringLiteral(baseUrl))],
       false
     ),
   ]);
+
+  const isUsingFetchBaseQuery = baseQuery === 'fetchBaseQuery';
+
+  function getBasePackageImportsFromOptions() {
+    return hooks
+      ? {
+          ...(isUsingFetchBaseQuery ? { fetchBaseQuery: 'fetchBaseQuery' } : {}),
+        }
+      : {
+          createApi: 'createApi',
+          ...(isUsingFetchBaseQuery ? { fetchBaseQuery: 'fetchBaseQuery' } : {}),
+        };
+  }
+
+  const hasBasePackageImports = Object.keys(getBasePackageImportsFromOptions()).length > 0;
 
   const sourceCode = printer.printNode(
     ts.EmitHint.Unspecified,
     factory.createSourceFile(
       [
-        generateImportNode('@rtk-incubator/rtk-query', {
-          createApi: 'createApi',
-          ...(baseQuery === 'fetchBaseQuery' ? { fetchBaseQuery: 'fetchBaseQuery' } : {}),
-        }),
+        // If hooks are specified, we need to import them from the react entry point in RTKQ >= 0.3
+        ...(hooks
+          ? [
+              generateImportNode('@rtk-incubator/rtk-query/react', {
+                createApi: 'createApi',
+              }),
+            ]
+          : []),
+        ...(hasBasePackageImports
+          ? [generateImportNode('@rtk-incubator/rtk-query', getBasePackageImportsFromOptions())]
+          : []),
         ...(customBaseQueryNode ? [customBaseQueryNode] : []),
         generateCreateApiCall({
           exportName,
           reducerPath,
           createApiFn: factory.createIdentifier('createApi'),
-          baseQuery: baseQueryCall,
-          entityTypes: generateEntityTypes({ v3Doc, operationDefinitions }),
+          baseQuery: isUsingFetchBaseQuery ? fetchBaseQueryCall : factory.createIdentifier(baseQuery),
+          tagTypes: generateTagTypes({ v3Doc, operationDefinitions }),
           endpointDefinitions: factory.createObjectLiteralExpression(
             operationDefinitions.map((operationDefinition) =>
               generateEndpoint({
@@ -160,7 +179,7 @@ export async function generateApi(
 
   return sourceCode;
 
-  function generateEntityTypes(_: { operationDefinitions: OperationDefinition[]; v3Doc: OpenAPIV3.Document }) {
+  function generateTagTypes(_: { operationDefinitions: OperationDefinition[]; v3Doc: OpenAPIV3.Document }) {
     return generateStringLiteralArray([]); // TODO
   }
 
