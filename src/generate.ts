@@ -7,7 +7,7 @@ import ApiGenerator, {
   isReference,
   supportDeepObjects,
 } from 'oazapfts/lib/codegen/generate';
-import { createQuestionToken, keywordType } from 'oazapfts/lib/codegen/tscodegen';
+import { createQuestionToken, keywordType, createPropertyAssignment } from 'oazapfts/lib/codegen/tscodegen';
 import { OpenAPIV3 } from 'openapi-types';
 import { generateReactHooks } from './generators/react-hooks';
 import { GenerationOptions, OperationDefinition } from './types';
@@ -437,8 +437,8 @@ function generateQuerArgObjectLiteralExpression(queryArgs: QueryArgDefinition[],
   return factory.createObjectLiteralExpression(
     queryArgs.map(
       (param) =>
-        factory.createPropertyAssignment(
-          factory.createIdentifier(param.originalName),
+        createPropertyAssignment(
+          param.originalName,
           factory.createPropertyAccessExpression(rootObject, factory.createIdentifier(param.name))
         ),
       true
