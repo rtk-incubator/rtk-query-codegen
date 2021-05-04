@@ -14,11 +14,19 @@ paths:
       summary: Some summary
       description: This is a search type
       parameters:
+        - name: foo
+          in: query
+          description: Some description
+          style: simple
+        - name: bar
+          in: query
+          description: Some description
+          style: simple
         - name: foo-foo-foo
           in: query
           description: Some description
           style: simple
-        - name: _foo
+        - name: foo_foo
           in: query
           description: Some description
           style: simple
