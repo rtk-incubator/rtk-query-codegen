@@ -18,7 +18,19 @@ paths:
           in: query
           description: Some description
           style: simple
+        - name: _foo
+          in: query
+          description: Some description
+          style: simple
         - name: bar
+          in: query
+          description: Some description
+          style: simple
+        - name: _bar-bar
+          in: query
+          description: Some description
+          style: simple
+        - name: _bar_bar
           in: query
           description: Some description
           style: simple
