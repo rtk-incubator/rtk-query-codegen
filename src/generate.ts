@@ -450,7 +450,9 @@ function generateQuerArgObjectLiteralExpression(queryArgs: QueryArgDefinition[],
       (param) =>
         createPropertyAssignment(
           param.originalName,
-          factory.createElementAccessExpression(rootObject, factory.createStringLiteral(param.originalName))
+          isValidIdentifier(param.originalName)
+            ? factory.createPropertyAccessExpression(rootObject, factory.createIdentifier(param.originalName))
+            : factory.createElementAccessExpression(rootObject, factory.createStringLiteral(param.originalName))
         ),
       true
     )

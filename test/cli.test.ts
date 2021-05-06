@@ -362,11 +362,9 @@ describe('yaml parsing', () => {
 
     const output = result.stdout;
 
-    expect(output).toContain('foo: queryArg["foo"],');
-    expect(output).toContain('_foo: queryArg["_foo"],');
-    expect(output).toContain('_bar_bar: queryArg["_bar_bar"],');
-    expect(output).toContain('bar: queryArg["bar"],');
-    expect(output).toContain('foo_foo: queryArg["fooFoo"],');
+    expect(output).toContain('foo: queryArg.foo,');
+    expect(output).toContain('_foo: queryArg._foo,');
+    expect(output).toContain('_bar_bar: queryArg._bar_bar,');
   });
 
   it('should generate params with quoted keys if they contain special characters', async () => {
@@ -374,11 +372,7 @@ describe('yaml parsing', () => {
 
     const output = result.stdout;
 
-    expect(output).toContain('"_bar-bar": queryArg["_bar-bar"],');
-    expect(output).toContain('"foo-foo-foo": queryArg["fooFooFoo"],');
-    expect(output).toContain('"foo:bar": queryArg["fooBar"],');
-    expect(output).toContain('"bar.foo": queryArg["barFoo"],');
-    expect(output).toContain('"bar/bar": queryArg["barBar"],');
-    expect(output).toContain('"foo:bar-foo-bar.foo.bar/foo/bar": queryArg["fooBarFooBarFooBarFooBar"],');
+    expect(output).toContain('"-bar-bar": queryArg["-bar-bar"],');
+    expect(output).toContain('"foo:bar-foo.bar/foo": queryArg["foo:bar-foo.bar/foo"],');
   });
 });

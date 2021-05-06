@@ -1,4 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { fetchBaseQuery } from '@reduxjs/toolkit/query';
 export const api = createApi({
   baseQuery: fetchBaseQuery({ baseUrl: '/api/v3' }),
   tagTypes: [],
@@ -29,7 +30,11 @@ export const api = createApi({
       }),
     }),
     deletePet: build.mutation<DeletePetApiResponse, DeletePetApiArg>({
-      query: (queryArg) => ({ url: `/pet/${queryArg.petId}`, method: 'DELETE', headers: { api_key: queryArg.apiKey } }),
+      query: (queryArg) => ({
+        url: `/pet/${queryArg.petId}`,
+        method: 'DELETE',
+        headers: { api_key: queryArg.api_key },
+      }),
     }),
     uploadFile: build.mutation<UploadFileApiResponse, UploadFileApiArg>({
       query: (queryArg) => ({
@@ -117,7 +122,7 @@ export type UpdatePetWithFormApiArg = {
 };
 export type DeletePetApiResponse = unknown;
 export type DeletePetApiArg = {
-  apiKey?: string;
+  api_key?: string;
   /** Pet id to delete */
   petId: number;
 };

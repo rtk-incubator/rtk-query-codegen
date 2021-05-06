@@ -22,11 +22,7 @@ paths:
           in: query
           description: Some description
           style: simple
-        - name: bar
-          in: query
-          description: Some description
-          style: simple
-        - name: _bar-bar
+        - name: -bar-bar
           in: query
           description: Some description
           style: simple
@@ -34,27 +30,7 @@ paths:
           in: query
           description: Some description
           style: simple
-        - name: foo-foo-foo
-          in: query
-          description: Some description
-          style: simple
-        - name: foo_foo
-          in: query
-          description: Some description
-          style: simple
-        - name: foo:bar
-          in: query
-          description: Some description
-          style: simple
-        - name: bar.foo
-          in: query
-          description: Some description
-          style: simple
-        - name: bar/bar
-          in: query
-          description: Some description
-          style: simple
-        - name: foo:bar-foo-bar.foo.bar/foo/bar
+        - name: foo:bar-foo.bar/foo
           in: query
           description: Some description
           style: simple
