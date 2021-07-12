@@ -23,6 +23,7 @@ program
   .option('-h, --hooks', 'generate React Hooks')
   .option('-c, --config <path>', 'pass tsconfig path for resolve path alias')
   .option('-f, --file <filename>', 'output file name (ex: generated.api.ts)')
+  .option('-q --quoteParameterNames', 'Add quotes to the generated parameter names')
   .parse(process.argv);
 
 if (program.args.length === 0) {
@@ -42,6 +43,7 @@ if (program.args.length === 0) {
     'hooks',
     'file',
     'config',
+    'quoteParameterNames',
   ] as const;
 
   const outputFile = program['file'];

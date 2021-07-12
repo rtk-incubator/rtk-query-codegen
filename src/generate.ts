@@ -44,6 +44,7 @@ export async function generateApi(
     outputFile,
     isDataResponse = defaultIsDataResponse,
     compilerOptions,
+    quoteParameterNames = false,
   }: GenerationOptions
 ) {
   const v3Doc = await getV3Doc(spec);
@@ -243,7 +244,7 @@ export async function generateApi(
       queryArg[name] = {
         origin: 'param',
         name,
-        originalName: param.name,
+        originalName: quoteParameterNames ? `'${param.name}'` : param.name,
         type: apiGen.getTypeFromSchema(isReference(param) ? param : param.schema),
         required: param.required,
         param,
@@ -357,7 +358,7 @@ export async function generateApi(
           [
             factory.createPropertyAssignment(
               factory.createIdentifier('url'),
-              generatePathExpression(path, pathParameters, rootObject)
+              generatePathExpression(path, pathParameters, rootObject, quoteParameterNames)
             ),
             isQuery(verb)
               ? undefined
@@ -405,11 +406,16 @@ export async function generateApi(
   }
 }
 
-function generatePathExpression(path: string, pathParameters: QueryArgDefinition[], rootObject: ts.Identifier) {
+function generatePathExpression(
+  path: string,
+  pathParameters: QueryArgDefinition[],
+  rootObject: ts.Identifier,
+  quoteParameterNames: boolean
+) {
   const expressions: Array<[string, string]> = [];
 
   const head = path.replace(/\{(.*?)\}(.*?)(?=\{|$)/g, (_, expression, literal) => {
-    const param = pathParameters.find((p) => p.originalName === expression);
+    const param = pathParameters.find((p) => p.originalName === (quoteParameterNames ? `'${expression}'` : expression));
     if (!param) {
       throw new Error(`path parameter ${expression} does not seem to be defined?`);
     }

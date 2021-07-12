@@ -47,6 +47,7 @@ npx @rtk-incubator/rtk-query-codegen-openapi --file generated.api.ts --baseQuery
 - `--baseUrl <url>` - set the `baseUrl` when using `fetchBaseQuery` (will be ignored if you pass `--baseQuery`)
 - `--hooks` - include React Hooks in the output (ex: `export const { useGetModelQuery, useUpdateModelMutation } = api`)
 - `--file <filename>` - specify a filename to output to (ex: `./generated.api.ts`)
+- `--quoteParameterNames` - Quotes the query parameter names, useful if generated names are `foo.bar`.
 
 ### Documentation
 

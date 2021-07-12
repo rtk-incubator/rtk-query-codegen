@@ -21,4 +21,5 @@ export type GenerationOptions = {
   outputFile?: string;
   compilerOptions?: ts.CompilerOptions;
   isDataResponse?(code: string, response: OpenAPIV3.ResponseObject, allResponses: OpenAPIV3.ResponsesObject): boolean;
+  quoteParameterNames?: boolean;
 };
