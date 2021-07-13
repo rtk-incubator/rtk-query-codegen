@@ -1,0 +1,59 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "Param test",
+    "version": "1"
+  },
+  "schemes": ["https"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "paths": {
+    "/api/v1/list": {
+      "get": {
+        "summary": "List things.",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/listResponse"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "filter.id",
+            "in": "query",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "response": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "readOnly": true
+        }
+      }
+    },
+    "listResponse": {
+      "type": "object",
+      "properties": {
+        "allocations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/response"
+          }
+        }
+      }
+    }
+  }
+}
