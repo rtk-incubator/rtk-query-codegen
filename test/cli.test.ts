@@ -362,9 +362,14 @@ describe('yaml parsing', () => {
 
     const output = result.stdout;
 
+    expect(output).toMatchSnapshot();
+
     expect(output).toContain('foo: queryArg.foo,');
     expect(output).toContain('_foo: queryArg._foo,');
     expect(output).toContain('_bar_bar: queryArg._bar_bar,');
+    expect(output).toContain('foo_bar: queryArg.fooBar,');
+    expect(output).toContain('namingConflict: queryArg.namingConflict,');
+    expect(output).toContain('naming_conflict: queryArg.naming_conflict,');
   });
 
   it('should generate params with quoted keys if they contain special characters', async () => {

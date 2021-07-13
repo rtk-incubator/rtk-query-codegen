@@ -34,6 +34,18 @@ paths:
           in: query
           description: Some description
           style: simple
+        - name: foo_bar
+          in: query
+          description: Some description
+          style: simple
+        - name: namingConflict
+          in: query
+          description: Some description
+          style: simple
+        - name: naming_conflict
+          in: query
+          description: Some description
+          style: simple
       responses:
         '200':
           description: Success
