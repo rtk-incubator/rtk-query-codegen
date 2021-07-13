@@ -436,7 +436,9 @@ function generatePathExpression(path: string, pathParameters: QueryArgDefinition
         factory.createTemplateHead(head),
         expressions.map(([prop, literal], index) =>
           factory.createTemplateSpan(
-            factory.createPropertyAccessExpression(rootObject, factory.createIdentifier(prop)),
+            isValidIdentifier(prop)
+              ? factory.createPropertyAccessExpression(rootObject, factory.createIdentifier(prop))
+              : factory.createElementAccessExpression(rootObject, factory.createStringLiteral(prop)),
             index === expressions.length - 1
               ? factory.createTemplateTail(literal)
               : factory.createTemplateMiddle(literal)
