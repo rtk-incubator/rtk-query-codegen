@@ -242,10 +242,15 @@ export async function generateApi(
       ...apiGen.resolveArray(operation.parameters),
     ]);
 
+    const allNames = parameters.map((p) => p.name);
     const queryArg: QueryArgDefinitions = {};
     for (const param of parameters) {
-      let name = camelCase(param.name);
-      queryArg[param.name] = {
+      const isPureSnakeCase = /^[a-zA-Z][a-zA-Z0-9_]*$/.test(param.name);
+      const camelCaseName = camelCase(param.name);
+
+      const name = isPureSnakeCase && !allNames.includes(camelCaseName) ? camelCaseName : param.name;
+
+      queryArg[name] = {
         origin: 'param',
         name,
         originalName: param.name,
@@ -266,7 +271,7 @@ export async function generateApi(
         name = '_' + name;
       }
 
-      queryArg[schemaName] = {
+      queryArg[name] = {
         origin: 'body',
         name,
         originalName: schemaName,
@@ -294,11 +299,11 @@ export async function generateApi(
           capitalize(getOperationName(verb, path, operation.operationId) + argSuffix),
           undefined,
           factory.createTypeLiteralNode(
-            Object.entries(queryArg).map(([name, def]) => {
+            Object.values(queryArg).map((def) => {
               const comment = def.origin === 'param' ? def.param.description : def.body.description;
               const node = factory.createPropertySignature(
                 undefined,
-                propertyName(name),
+                propertyName(def.name),
                 createQuestionToken(!def.required),
                 def.type
               );
@@ -450,9 +455,9 @@ function generateQuerArgObjectLiteralExpression(queryArgs: QueryArgDefinition[],
       (param) =>
         createPropertyAssignment(
           param.originalName,
-          isValidIdentifier(param.originalName)
-            ? factory.createPropertyAccessExpression(rootObject, factory.createIdentifier(param.originalName))
-            : factory.createElementAccessExpression(rootObject, factory.createStringLiteral(param.originalName))
+          isValidIdentifier(param.name)
+            ? factory.createPropertyAccessExpression(rootObject, factory.createIdentifier(param.name))
+            : factory.createElementAccessExpression(rootObject, factory.createStringLiteral(param.name))
         ),
       true
     )
