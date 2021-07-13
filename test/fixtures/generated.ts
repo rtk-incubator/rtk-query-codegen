@@ -30,11 +30,7 @@ export const api = createApi({
       }),
     }),
     deletePet: build.mutation<DeletePetApiResponse, DeletePetApiArg>({
-      query: (queryArg) => ({
-        url: `/pet/${queryArg.petId}`,
-        method: 'DELETE',
-        headers: { api_key: queryArg.api_key },
-      }),
+      query: (queryArg) => ({ url: `/pet/${queryArg.petId}`, method: 'DELETE', headers: { api_key: queryArg.apiKey } }),
     }),
     uploadFile: build.mutation<UploadFileApiResponse, UploadFileApiArg>({
       query: (queryArg) => ({
@@ -122,7 +118,7 @@ export type UpdatePetWithFormApiArg = {
 };
 export type DeletePetApiResponse = unknown;
 export type DeletePetApiArg = {
-  api_key?: string;
+  apiKey?: string;
   /** Pet id to delete */
   petId: number;
 };

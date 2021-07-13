@@ -281,9 +281,6 @@ export async function generateApi(
       };
     }
 
-    // TODO strip param names where applicable
-    //const stripped = camelCase(param.name.replace(/.+\./, ""));
-
     const propertyName = (name: string | ts.PropertyName): ts.PropertyName => {
       if (typeof name === 'string') {
         return isValidIdentifier(name) ? factory.createIdentifier(name) : factory.createStringLiteral(name);
