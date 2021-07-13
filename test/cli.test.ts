@@ -343,7 +343,7 @@ describe('CLI options testing', () => {
     expect(fs.readFileSync(fileName, { encoding: 'utf-8' })).toMatchSnapshot();
   });
 
-  it('should camel case parameters with full stops in their name', async () => {
+  it('should quote parameters when the -q flag is applied', async () => {
     const result = await cli(['-h', '-q', `./test/fixtures/list.json`], '.');
     expect(result.stdout).toContain(`params: { \"filter.id\": queryArg.filterId },`);
   });
