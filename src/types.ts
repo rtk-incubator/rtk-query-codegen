@@ -23,3 +23,27 @@ export type GenerationOptions = {
   compilerOptions?: ts.CompilerOptions;
   isDataResponse?(code: string, response: OpenAPIV3.ResponseObject, allResponses: OpenAPIV3.ResponsesObject): boolean;
 };
+
+export interface CommonOptions extends GenerationOptions {
+  //apiFile: string;
+  schemaFile: string; // filename or url
+  apiImport?: string; // defaults to "api"
+  tsConfigFilePath?: string;
+}
+
+export interface OutputFileOptions extends Partial<GenerationOptions> {
+  outputFile: string;
+  filterEndpoints?: string | string[] | RegExp | RegExp[];
+  endpointOverrides?: EndpointOverrides[];
+}
+
+export interface EndpointOverrides {
+  pattern: string | string[] | RegExp | RegExp[];
+  type: 'mutation' | 'query';
+}
+
+export type ConfigFile =
+  | (CommonOptions & OutputFileOptions)
+  | (Omit<CommonOptions, 'outputFile'> & {
+      outputFiles: { [outputFile: string]: Omit<OutputFileOptions, 'outputFile'> };
+    });
