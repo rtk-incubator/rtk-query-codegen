@@ -49,6 +49,78 @@ npx @rtk-incubator/rtk-query-codegen-openapi --file generated.api.ts --baseQuery
 - `--hooks` - include React Hooks in the output (ex: `export const { useGetModelQuery, useUpdateModelMutation } = api`)
 - `--file <filename>` - specify a filename to output to (ex: `./generated.api.ts`)
 
+<br/>
+
+### Script Usage
+
+---
+
+Step 1: Create codegen config script
+
+```js
+// rtk-codgen.config.js
+const { generateEndpoints } = require('@rtk-incubator/rtk-query-codegen-openapi');
+
+// Comes from .env.local config - accepts urls or relative paths
+// ex. https://your.custom.domain/api/v1/swagger.json
+const {
+  parsed: { OPENAPI_DOCS },
+} = require('dotenv').config({ path: './.env.local' });
+
+const simpleUsageExample = generateEndpoints({
+  apiFile: 'api.ts',
+  schemaFile: 'openapi.json',
+  outputFile: 'enhancedApi.ts',
+});
+
+const multiOutputConfig = {
+  apiFile: 'api.ts',
+  schemaFile: 'openapi.json',
+  hooks: true,
+  outputFiles: {
+    'posts.ts': {
+      filterEndpoints: /post/i,
+    },
+    'users.ts': {
+      filterEndpoints: /user/i,
+      endpointOverrides: [{ pattern: 'filterUsers', type: 'query' }],
+    },
+  },
+};
+
+generateEndpoints({
+  schemaFile: OPENAPI_DOCS,
+  outputFile: './src/app/finsense-api.generated.ts',
+  hooks: true,
+  baseQuery: './src/app/apiBaseQuery.ts:apiBaseQuery',
+});
+```
+
+Step 2: Add package.json script
+
+```json
+// package.json
+...
+"scripts": {
+  "rtk-codegen": "node rtk-codegen.config.js"
+}
+...
+```
+
+Step 3: Run script to update api as needed
+
+with npm:
+
+```bash
+npm run rtk-codegen
+```
+
+or with yarn:
+
+```bash
+yarn rtk-codegen
+```
+
 ### Documentation
 
 [View the RTK Query Code Generation docs](https://redux-toolkit.js.org/rtk-query/usage/code-generation)
