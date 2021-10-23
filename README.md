@@ -90,7 +90,7 @@ const multiOutputConfig = {
 
 generateEndpoints({
   schemaFile: OPENAPI_DOCS,
-  outputFile: './src/app/finsense-api.generated.ts',
+  outputFile: './src/app/api.generated.ts',
   hooks: true,
   baseQuery: './src/app/apiBaseQuery.ts:apiBaseQuery',
 });
@@ -99,12 +99,9 @@ generateEndpoints({
 Step 2: Add package.json script
 
 ```json
-// package.json
-...
 "scripts": {
   "rtk-codegen": "node rtk-codegen.config.js"
 }
-...
 ```
 
 Step 3: Run script to update api as needed
