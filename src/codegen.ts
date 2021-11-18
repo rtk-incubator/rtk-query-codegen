@@ -1,4 +1,5 @@
 import * as ts from 'typescript';
+import semver from 'semver';
 const { factory } = ts;
 import { GenerationOptions } from './types';
 
@@ -16,6 +17,14 @@ export function generateStringLiteralArray(arr: string[]) {
   );
 }
 
+function createImportSpecifier(propertyName: ts.Identifier | undefined, name: ts.Identifier): ts.ImportSpecifier {
+  if (semver.satisfies(ts.version, '>= 4.5'))
+    // @ts-ignore
+    return factory.createImportSpecifier(false, propertyName, name);
+  // @ts-ignore
+  return factory.createImportSpecifier(propertyName, name);
+}
+
 export function generateImportNode(pkg: string, namedImports: Record<string, string>, defaultImportName?: string) {
   return factory.createImportDeclaration(
     undefined,
@@ -25,7 +34,7 @@ export function generateImportNode(pkg: string, namedImports: Record<string, str
       defaultImportName !== undefined ? factory.createIdentifier(defaultImportName) : undefined,
       factory.createNamedImports(
         Object.entries(namedImports).map(([propertyName, name]) =>
-          factory.createImportSpecifier(
+          createImportSpecifier(
             name === propertyName ? undefined : factory.createIdentifier(propertyName),
             factory.createIdentifier(name)
           )
