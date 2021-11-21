@@ -1,4 +1,5 @@
 import * as ts from 'typescript';
+import { createImportSpecifier } from '../codegen';
 
 const { factory } = ts;
 
@@ -13,7 +14,7 @@ export function generateImportNode(pkg: string, namedImports: Record<string, str
         Object.entries(namedImports)
           .filter((args) => args[1])
           .map(([propertyName, name]) =>
-            factory.createImportSpecifier(
+            createImportSpecifier(
               name === propertyName ? undefined : factory.createIdentifier(propertyName),
               factory.createIdentifier(name as string)
             )

@@ -17,7 +17,10 @@ export function generateStringLiteralArray(arr: string[]) {
   );
 }
 
-function createImportSpecifier(propertyName: ts.Identifier | undefined, name: ts.Identifier): ts.ImportSpecifier {
+export function createImportSpecifier(
+  propertyName: ts.Identifier | undefined,
+  name: ts.Identifier
+): ts.ImportSpecifier {
   if (semver.satisfies(ts.version, '>= 4.5'))
     // @ts-ignore
     return factory.createImportSpecifier(false, propertyName, name);
